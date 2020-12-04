@@ -11,12 +11,16 @@ async function main(): Promise<void> {
   // to make sure everything is compiled
   // await run("compile");
 
-  // We get the contract to deploy
-  const GrantMatchPayouts: ContractFactory = await ethers.getContractFactory('GrantMatchPayouts');
-  const grantMatchPayouts: Contract = await GrantMatchPayouts.deploy('Hello, Buidler!');
-  await grantMatchPayouts.deployed();
+  // Define constructor parameters
+  const owner = '0x00De4B13153673BCAE2616b67bf822500d325Fc3';
+  const daiAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // TODO update based on network
 
-  console.log('GrantMatchPayouts deployed to: ', grantMatchPayouts.address);
+  // We get the contract to deploy
+  const MatchPayouts: ContractFactory = await ethers.getContractFactory('MatchPayouts');
+  const matchPayouts: Contract = await MatchPayouts.deploy(owner, daiAddress);
+  await matchPayouts.deployed();
+
+  console.log('MatchPayouts deployed to: ', matchPayouts.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
