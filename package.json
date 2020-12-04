@@ -3,6 +3,9 @@
   "description": "Gitcoin grants matching contract",
   "version": "1.0.0",
   "author": "Matt Solomon <matt@mattsolomon.dev>",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.3.0"
+  },
   "devDependencies": {
     "@ethersproject/abstract-signer": "^5.0.6",
     "@ethersproject/bignumber": "^5.0.8",
@@ -44,11 +47,10 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
-    "lint": "yarn run lint:sol && yarn run lint:ts && yarn run prettier:list-different",
+    "lint": "yarn run lint:sol && yarn run lint:ts",
     "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
     "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
-    "prettier:list-different": "prettier --config .prettierrc --list-different \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
     "typechain": "hardhat typechain"
   },
@@ -58,7 +60,8 @@
     }
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix",
-    "*.{js,css,md}": "prettier --write"
+    "*.{js,ts,sol,md}": "yarn prettier",
+    "*.{js,ts}": "yarn lint:ts",
+    "*.{sol}": "yarn lint:sol"
   }
 }

@@ -15,16 +15,19 @@ describe('Unit tests', function () {
     this.signers = {} as Signers;
 
     const signers: Signer[] = await ethers.getSigners();
-    this.signers.admin = signers[0];
-    this.accounts.admin = await signers[0].getAddress();
+    this.signers.deployer = signers[0];
+    this.accounts.deployer = await signers[0].getAddress();
+    this.accounts.owner = await signers[1].getAddress();
   });
 
   describe('GrantMatchPayouts', function () {
     beforeEach(async function () {
-      const greeting: string = 'Hello, world!';
-      this.grantMatchPayouts = (await deployContract(this.signers.admin, GrantMatchPayoutsArtifact, [
-        greeting,
-      ])) as GrantMatchPayouts;
+      const constructorArgs = [this.accounts.owner];
+      this.grantMatchPayouts = (await deployContract(
+        this.signers.deployer,
+        GrantMatchPayoutsArtifact,
+        constructorArgs
+      )) as GrantMatchPayouts;
     });
 
     shouldBehaveLikeGrantMatchPayouts();
