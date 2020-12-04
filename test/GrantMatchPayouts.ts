@@ -1,11 +1,11 @@
 import { Signer } from '@ethersproject/abstract-signer';
 import { ethers, waffle } from 'hardhat';
 
-import GreeterArtifact from '../artifacts/contracts/Greeter.sol/Greeter.json';
+import GrantMatchPayoutsArtifact from '../artifacts/contracts/GrantMatchPayouts.sol/GrantMatchPayouts.json';
 
 import { Accounts, Signers } from '../types';
-import { Greeter } from '../typechain/Greeter';
-import { shouldBehaveLikeGreeter } from './Greeter.behavior';
+import { GrantMatchPayouts } from '../typechain/GrantMatchPayouts';
+import { shouldBehaveLikeGrantMatchPayouts } from './GrantMatchPayouts.behavior';
 
 const { deployContract } = waffle;
 
@@ -19,14 +19,14 @@ describe('Unit tests', function () {
     this.accounts.admin = await signers[0].getAddress();
   });
 
-  describe('Greeter', function () {
+  describe('GrantMatchPayouts', function () {
     beforeEach(async function () {
       const greeting: string = 'Hello, world!';
-      this.greeter = (await deployContract(this.signers.admin, GreeterArtifact, [
+      this.grantMatchPayouts = (await deployContract(this.signers.admin, GrantMatchPayoutsArtifact, [
         greeting,
-      ])) as Greeter;
+      ])) as GrantMatchPayouts;
     });
 
-    shouldBehaveLikeGreeter();
+    shouldBehaveLikeGrantMatchPayouts();
   });
 });
