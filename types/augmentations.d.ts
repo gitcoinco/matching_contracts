@@ -1,10 +1,10 @@
 import { Accounts, Signers } from './';
-import { Greeter } from '../typechain/Greeter';
+import { GrantMatchPayouts } from '../typechain/GrantMatchPayouts';
 
 declare module 'mocha' {
   export interface Context {
     accounts: Accounts;
-    greeter: Greeter;
+    grantMatchPayouts: GrantMatchPayouts;
     signers: Signers;
   }
 }

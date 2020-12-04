@@ -1,14 +1,10 @@
-// SPDX-License-Identifier: MIT
-
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.7.0;
 
-import "hardhat/console.sol";
-
-contract Greeter {
+contract GrantMatchPayouts {
   string public greeting;
 
   constructor(string memory _greeting) {
-    console.log("Deploying a Greeter with greeting:", _greeting);
     greeting = _greeting;
   }
 
@@ -17,7 +13,6 @@ contract Greeter {
   }
 
   function setGreeting(string memory _greeting) public {
-    console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
     greeting = _greeting;
   }
 }
