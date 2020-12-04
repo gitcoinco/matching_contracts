@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.7.0;
 
-contract GrantMatchPayouts {
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract GrantMatchPayouts is Ownable {
   string public greeting;
 
-  constructor(string memory _greeting) {
-    greeting = _greeting;
+  constructor(address _owner) {
+    transferOwnership(_owner);
   }
 
   function greet() public view returns (string memory) {

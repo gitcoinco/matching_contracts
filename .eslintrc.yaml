@@ -6,6 +6,7 @@ extends:
 parser: "@typescript-eslint/parser"
 parserOptions:
   project: tsconfig.json
+  extraFileExtensions: ['.sol']
 plugins:
   - "@typescript-eslint"
 root: true
