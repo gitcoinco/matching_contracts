@@ -40,7 +40,7 @@ contract MatchPayouts is Ownable {
    * @dev Only allows method to be called once the payouts mapping has been finalized
    */
   modifier onlyWhenReady() {
-    require(readyForPayout, "Payouts not ready");
+    require(readyForPayout, "MatchPayouts: Payouts not ready");
     _;
   }
 
@@ -49,11 +49,15 @@ contract MatchPayouts is Ownable {
   /**
    * @notice Provide funds to the match pool
    * @dev Alternatively, you can just transfer DAI to this contract directly. This method is
-   * costlier since it requires an `approve` call, but is a nice helper method for funders who do
-   * not want to copy/paste an address
+   * costlier since it first requires an `approve` call, but is a nice helper method for funders who
+   * do not want to copy/paste an address
+   * @dev Even though funds can be added any time by just transferring to this contract, the intent
+   * is that funds won't be transferred until the payout mapping is ready and approved by the
+   * funder. Therefore, if someone is adding funds through this method, we may as well enforce that
+   * the payout mapping is ready
    * @param _amount Amount of funds to provide
    */
-  function addFunds(uint256 _amount) external {
+  function addFunds(uint256 _amount) external onlyWhenReady {
     dai.safeTransferFrom(msg.sender, address(this), _amount);
   }
 
@@ -62,7 +66,8 @@ contract MatchPayouts is Ownable {
    * @param _recipient Address to withdraw for
    */
   function withdraw(address _recipient) external onlyWhenReady {
-    dai.safeTransfer(_recipient, payouts[msg.sender]);
+    dai.safeTransfer(_recipient, payouts[_recipient]);
+    payouts[_recipient] = 0; // safe to put effect after interaction since we trust the Dai contract
   }
 
   /**
@@ -73,6 +78,7 @@ contract MatchPayouts is Ownable {
    * @param _readyForPayout True if this is the last mapping to set for this grants round
    */
   function setPayouts(Payout[] calldata _payouts, bool _readyForPayout) external onlyOwner {
+    require(!readyForPayout, "MatchPayouts: Payouts already finalized");
     // Set each payout amount
     for (uint256 i = 0; i < _payouts.length; i += 1) {
       // This contract can be used for multiple rounds, so we add the amount instead of setting it.
