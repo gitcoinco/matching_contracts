@@ -11,7 +11,7 @@ contract MatchPayouts is Ownable {
   // ======================================= STATE VARIABLES =======================================
 
   /// @dev Token used for match payouts
-  IERC20 public dai;
+  IERC20 public immutable dai;
 
   /// @dev Convenience type used for setting inputs
   struct Payout {
@@ -24,6 +24,17 @@ contract MatchPayouts is Ownable {
 
   /// @dev When true, the payouts mapping is finalized and cannot be updated
   bool public readyForPayout;
+
+  // =========================================== EVENTS ============================================
+
+  /// @dev Emitted when the `readyForPayout` flag is set
+  event PayoutFlagSet(bool readyForPayout);
+
+  /// @dev Emitted when a payout `amount` is added to the `recipient`'s payout total
+  event PayoutAdded(address recipient, uint256 amount);
+
+  /// @dev Emitted when a `recipient` withdraws their payout
+  event PayoutClaimed(address recipient);
 
   // ================================== CONSTRUCTOR AND MODIFIERS ==================================
 
@@ -58,6 +69,7 @@ contract MatchPayouts is Ownable {
    * @param _amount Amount of funds to provide
    */
   function addFunds(uint256 _amount) external onlyWhenReady {
+    // This is just a transfer to the contract, so no reason to log a special event here
     dai.safeTransferFrom(msg.sender, address(this), _amount);
   }
 
@@ -68,6 +80,7 @@ contract MatchPayouts is Ownable {
   function withdraw(address _recipient) external onlyWhenReady {
     dai.safeTransfer(_recipient, payouts[_recipient]);
     payouts[_recipient] = 0; // safe to put effect after interaction since we trust the Dai contract
+    emit PayoutClaimed(_recipient);
   }
 
   /**
@@ -85,11 +98,15 @@ contract MatchPayouts is Ownable {
       // That way if a grant owner does not lose their match if they don't withdraw it until the
       // next round
       payouts[_payouts[i].recipient] += _payouts[i].amount;
+      PayoutAdded(_payouts[i].recipient, _payouts[i].amount);
     }
 
     // Finalize if specified
     if (_readyForPayout) {
+      // TODO should this flag instead be an explicit toggle, instead of setting it here and
+      // clearing it in `reset()`?
       readyForPayout = _readyForPayout;
+      emit PayoutFlagSet(_readyForPayout);
     }
   }
 
@@ -100,5 +117,6 @@ contract MatchPayouts is Ownable {
     // TODO Should we require a delay, e.g. 1 month, between when readyForPayout is set to true
     // vs. when this can be called?
     readyForPayout = false;
+    emit PayoutFlagSet(false);
   }
 }
