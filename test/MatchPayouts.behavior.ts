@@ -60,22 +60,22 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal('0');
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal('0');
 
-      // Set payouts
-      const matchAmounts = [parseEther('1'), parseEther('1.5')];
+      // Set payouts and and check for events. Waffle doesn't have an easy way to check for multiple
+      // event emissions in one transaction so we only check for one here
+      const matchAmts = [parseEther('1'), parseEther('1.5')];
       const payouts = [
-        { recipient: this.accounts.grantOwners[0], amount: matchAmounts[0] },
-        { recipient: this.accounts.grantOwners[1], amount: matchAmounts[1] },
+        { recipient: this.accounts.grantOwners[0], amount: matchAmts[0] },
+        { recipient: this.accounts.grantOwners[1], amount: matchAmts[1] },
       ];
-      await this.matchPayouts.connect(this.signers.owner).setPayouts(payouts, false);
+      const tx = this.matchPayouts.connect(this.signers.owner).setPayouts(payouts, false);
+      await expect(tx)
+        .to.emit(this.matchPayouts, 'PayoutAdded')
+        .withArgs(this.accounts.grantOwners[0], matchAmts[0]);
 
-      // Check that it was set properly
+      // Check that payouts were set properly
       expect(await this.matchPayouts.readyForPayout()).to.equal(false);
-      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal(
-        matchAmounts[0]
-      );
-      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal(
-        matchAmounts[1]
-      );
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal(matchAmts[0]);
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal(matchAmts[1]);
     });
 
     it('lets the owner set the payout mapping and finalize payout mapping', async function () {
@@ -83,22 +83,21 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal('0');
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal('0');
 
-      // Set payouts
-      const matchAmounts = [parseEther('1'), parseEther('1.5')];
+      // Set payouts and and check for events. Waffle doesn't have an easy way to check for multiple
+      // event emissions in one transaction so we only check for the PayoutFlagSet since we check
+      // for PayoutAdded in a previous test
+      const matchAmts = [parseEther('1'), parseEther('1.5')];
       const payouts = [
-        { recipient: this.accounts.grantOwners[0], amount: matchAmounts[0] },
-        { recipient: this.accounts.grantOwners[1], amount: matchAmounts[1] },
+        { recipient: this.accounts.grantOwners[0], amount: matchAmts[0] },
+        { recipient: this.accounts.grantOwners[1], amount: matchAmts[1] },
       ];
-      await this.matchPayouts.connect(this.signers.owner).setPayouts(payouts, true);
+      const tx = this.matchPayouts.connect(this.signers.owner).setPayouts(payouts, true);
+      await expect(tx).to.emit(this.matchPayouts, 'PayoutFlagSet').withArgs(true);
 
       // Check that it was set properly
       expect(await this.matchPayouts.readyForPayout()).to.equal(true);
-      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal(
-        matchAmounts[0]
-      );
-      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal(
-        matchAmounts[1]
-      );
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal(matchAmts[0]);
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal(matchAmts[1]);
     });
 
     it('End to end test of everything after payout mapping is finalized', async function () {
@@ -109,10 +108,10 @@ export function shouldBehaveLikeMatchPayouts(): void {
       await this.dai.mint(this.accounts.funders[1], funderAmounts[1]);
 
       // Set payouts
-      const matchAmounts = [parseEther('15000'), parseEther('37000')]; // 15k and 37k DAI
+      const matchAmts = [parseEther('15000'), parseEther('37000')]; // 15k and 37k DAI
       const payouts = [
-        { recipient: this.accounts.grantOwners[0], amount: matchAmounts[0] },
-        { recipient: this.accounts.grantOwners[1], amount: matchAmounts[1] },
+        { recipient: this.accounts.grantOwners[0], amount: matchAmts[0] },
+        { recipient: this.accounts.grantOwners[1], amount: matchAmts[1] },
       ];
       await this.matchPayouts.connect(this.signers.owner).setPayouts(payouts, true);
 
@@ -138,38 +137,55 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // First grant owner withdraws on their own
-      await this.matchPayouts
+      const tx1 = this.matchPayouts
         .connect(this.signers.grantOwners[0])
         .withdraw(this.accounts.grantOwners[0]);
-      const firstBalance = expectedBalance.sub(matchAmounts[0]);
+
+      await expect(tx1)
+        .to.emit(this.matchPayouts, 'PayoutClaimed')
+        .withArgs(this.accounts.grantOwners[0]);
+
+      const firstBalance = expectedBalance.sub(matchAmts[0]);
       expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(firstBalance);
 
       // First grant owner should have their match funds
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
+      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmts[0]);
       expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // Evil user withdraws for second grant owner
-      await this.matchPayouts.connect(this.signers.evilUser).withdraw(this.accounts.grantOwners[1]);
-      const secondBalance = firstBalance.sub(matchAmounts[1]);
+      const tx2 = this.matchPayouts
+        .connect(this.signers.evilUser)
+        .withdraw(this.accounts.grantOwners[1]);
+
+      await expect(tx2)
+        .to.emit(this.matchPayouts, 'PayoutClaimed')
+        .withArgs(this.accounts.grantOwners[1]);
+
+      const secondBalance = firstBalance.sub(matchAmts[1]);
       expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
 
       // Withdrawal amount still should have went to the second grant owner
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
+      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmts[0]);
+      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmts[1]);
       expect(await this.dai.balanceOf(this.accounts.evilUser)).to.equal('0');
 
       // Users can try to withdraw again, but won't receive any extra DAI
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal('0');
+      expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal('0');
+
       await this.matchPayouts
         .connect(this.signers.grantOwners[1])
         .withdraw(this.accounts.grantOwners[1]);
+
       expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
+      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmts[0]);
+      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmts[1]);
       expect(await this.dai.balanceOf(this.accounts.evilUser)).to.equal('0');
 
       // Owner can reset the readyForPayout flag to prepare for the next round
       expect(await this.matchPayouts.readyForPayout()).to.equal(true);
-      await this.matchPayouts.connect(this.signers.owner).reset();
+      const tx3 = this.matchPayouts.connect(this.signers.owner).reset();
+      await expect(tx3).to.emit(this.matchPayouts, 'PayoutFlagSet').withArgs(false);
       expect(await this.matchPayouts.readyForPayout()).to.equal(false);
     });
   });
