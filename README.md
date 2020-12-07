@@ -4,19 +4,24 @@ Non-custodial match payouts for Gitcoin Grants.
 
 ## About
 
-This contract facilitates non-custodial match payouts after a Gitcoin Grants round. It works as follows:
+This contract allows for non-custodial Gitcoin Grants match payouts. It works as follows:
 
-1. Contract is deployed with empty state
-2. When a round is complete, Gitcoin computes the final match amounts based on contribution data
-3. Gitcoin calls `setPayouts()` which sets the amount of DAI that each grant earned in matching this round
-4. Once all payouts are set, the `readyForPayout` flag is set to `true` and the match payouts are finalized
-5. Funders should review the configured payout mapping and make sure they agree with it
-6. If so, they transfer their DAI to the contract. This can be done with an ordinary transfer to the contract's address, or with the `addFunds()` method.
-   1. **WARNING: Do not send anything except for DAI to this contract or it will be lost**
-7. Once funders have sent their DAI to the contract, grant owners can call `withdraw()` to have their match payout sent to their address. Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin grants address cannot call contract methods.
-8. When the next round is about to begin, the `reset()` method is called so the new payout mapping can be set
+1. During a matching round, deploy a new instance of this contract
+2. Once the round is complete, Gitcoin computes the final match amounts earned by each grant
+3. Over the course of multiple transactions, the contract owner will set the payout mapping
+   stored in the `payouts` variable. This maps each grant receiving address to the match amount
+   owed, in DAI
+4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
+   sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
+5. Funders review the payout mapping, and if they approve they transfer their funds to this
+   contract. This can be done with an ordinary transfer to this contract address. **WARNING: Do not send anything except for DAI to this contract or it will be lost**
+6. Once all funds have been transferred, the contract owner calls `enablePayouts` which lets
+   grant owners withdraw their match payments
+7. Grant owners can now call `withdraw()` to have their match payout sent to their address.
+   Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
+   grants address cannot call contract methods.
 
-This contract is deployed on mainnet and Rinkeby at **\_\_\_**
+This contract is deployed on mainnet at TBD
 
 ## Development
 
