@@ -23,18 +23,11 @@ describe('MatchPayouts', function () {
     this.signers.owner = signers[1];
     this.accounts.owner = await this.signers.owner.getAddress();
 
-    this.signers.newOwner = signers[2];
-    this.accounts.newOwner = await this.signers.newOwner.getAddress();
+    this.signers.funder = signers[2];
+    this.accounts.funder = await this.signers.funder.getAddress();
 
     this.signers.evilUser = signers[3];
     this.accounts.evilUser = await this.signers.evilUser.getAddress();
-
-    this.signers.funders = [];
-    this.signers.funders.push(signers[4]);
-    this.signers.funders.push(signers[5]);
-    this.accounts.funders = [];
-    this.accounts.funders.push(await this.signers.funders[0].getAddress());
-    this.accounts.funders.push(await this.signers.funders[1].getAddress());
 
     this.signers.grantOwners = [];
     this.signers.grantOwners.push(signers[4]);
@@ -56,7 +49,7 @@ describe('MatchPayouts', function () {
     this.matchPayouts = (await deployContract(
       this.signers.deployer,
       this.MatchPayoutsArtifact,
-      [this.accounts.owner, this.dai.address] // constructor arguments
+      [this.accounts.owner, this.accounts.funder, this.dai.address] // constructor arguments
     )) as MatchPayouts;
   });
 

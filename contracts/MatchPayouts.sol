@@ -2,13 +2,39 @@
 pragma solidity ^0.7.5;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-contract MatchPayouts is Ownable {
+/**
+ * @dev This contract allows for non-custodial Gitcoin Grants match payouts. It works as follows:
+ *  1. During a matching round, deploy a new instance of this contract
+ *  2. Once the round is complete, Gitcoin computes the final match amounts earned by each grant
+ *  3. Over the course of multiple transactions, the contract owner will set the payout mapping
+ *     stored in the `payouts` variable. This maps each grant receiving address to the match amount
+ *     owed, in DAI
+ *  4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
+ *     sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
+ *  5. Funders review the payout mapping, and if they approve they transfer their funds to this
+ *     contract. This can be done with an ordinary transfer to this contract address.
+ *  6. Once all funds have been transferred, the contract owner calls `enablePayouts` which lets
+ *     grant owners withdraw their match payments
+ *  6. Grant owners can now call `withdraw()` to have their match payout sent to their address.
+ *     Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
+ *     grants address cannot call contract methods.
+ * 
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *        WARNING: DO NOT SEND ANYTHING EXCEPT FOR DAI TO THIS CONTRACT OR IT WILL BE LOST!        *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ */
+contract MatchPayouts {
   using SafeERC20 for IERC20;
 
   // ======================================= STATE VARIABLES =======================================
+
+  /// @dev Address that can modify contract state
+  address public immutable owner;
+
+  /// @dev Address where funding comes from (Gitcoin Grants multisig)
+  address public immutable funder;
 
   /// @dev Token used for match payouts
   IERC20 public immutable dai;
@@ -16,19 +42,29 @@ contract MatchPayouts is Ownable {
   /// @dev Convenience type used for setting inputs
   struct Payout {
     address recipient; // grant receiving address
-    uint256 amount; // match amount
+    uint256 amount; // match amount for that grant
   }
 
   /// @dev Maps a grant's receiving address their match amount
   mapping(address => uint256) public payouts;
 
   /// @dev When true, the payouts mapping is finalized and cannot be updated
-  bool public readyForPayout;
+  bool public finalized;
+
+  /// @dev When true, the contract has been funded and withdrawals can begin. Contract must be
+  /// `finalized` before it can be `funded`
+  bool public funded;
 
   // =========================================== EVENTS ============================================
 
-  /// @dev Emitted when the `readyForPayout` flag is set
-  event PayoutFlagSet(bool readyForPayout);
+  /// @dev Emitted when the `finalized` flag is set
+  event Finalized();
+
+  /// @dev Emitted when the `funded` flag is set
+  event Funded();
+
+  /// @dev Emitted when the funder reclaims the funds in this contract
+  event FundingWithdrawn();
 
   /// @dev Emitted when a payout `amount` is added to the `recipient`'s payout total
   event PayoutAdded(address recipient, uint256 amount);
@@ -40,83 +76,84 @@ contract MatchPayouts is Ownable {
 
   /**
    * @param _owner Address of contract owner
+   * @param _funder Address of funder
    * @param _dai DAI address
    */
-  constructor(address _owner, IERC20 _dai) {
-    transferOwnership(_owner);
+  constructor(address _owner, address _funder, IERC20 _dai) {
+    owner = _owner;
+    funder = _funder;
     dai = _dai;
   }
 
-  /**
-   * @dev Only allows method to be called once the payouts mapping has been finalized
-   */
-  modifier onlyWhenReady() {
-    require(readyForPayout, "MatchPayouts: Payouts not ready");
+  /// @dev Requires caller to be the owner
+  modifier onlyOwner() {
+    require(msg.sender == owner, "MatchPayouts: caller is not the owner");
+    _;
+  }
+
+  /// @dev Only allows method to be called once the payouts mapping has been finalized
+  modifier onlyWhenFinalized() {
+    require(finalized, "MatchPayouts: Payouts not finalized");
     _;
   }
 
   // ======================================= PRIMARY METHODS =======================================
-
-  /**
-   * @notice Provide funds to the match pool
-   * @dev Alternatively, you can just transfer DAI to this contract directly. This method is
-   * costlier since it first requires an `approve` call, but is a nice helper method for funders who
-   * do not want to copy/paste an address
-   * @dev Even though funds can be added any time by just transferring to this contract, the intent
-   * is that funds won't be transferred until the payout mapping is ready and approved by the
-   * funder. Therefore, if someone is adding funds through this method, we may as well enforce that
-   * the payout mapping is ready
-   * @param _amount Amount of funds to provide
-   */
-  function addFunds(uint256 _amount) external onlyWhenReady {
-    // This is just a transfer to the contract, so no reason to log a special event here
-    dai.safeTransferFrom(msg.sender, address(this), _amount);
-  }
-
-  /**
-   * @notice Withdraws funds owed to `_recipient`
-   * @param _recipient Address to withdraw for
-   */
-  function withdraw(address _recipient) external onlyWhenReady {
-    dai.safeTransfer(_recipient, payouts[_recipient]);
-    payouts[_recipient] = 0; // safe to put effect after interaction since we trust the Dai contract
-    emit PayoutClaimed(_recipient);
-  }
+  // Functions are laid out in the order they will be called over the lifetime of the contract
 
   /**
    * @notice Set's the mapping of addresses to their match amount
    * @dev This will need to be called multiple times to prevent exceeding the block gas limit, based
    * on the number of grants
    * @param _payouts Array of `Payout`s to set
-   * @param _readyForPayout True if this is the last mapping to set for this grants round
    */
-  function setPayouts(Payout[] calldata _payouts, bool _readyForPayout) external onlyOwner {
-    require(!readyForPayout, "MatchPayouts: Payouts already finalized");
+  function setPayouts(Payout[] calldata _payouts) external onlyOwner {
+    require(!finalized, "MatchPayouts: Payouts already finalized");
     // Set each payout amount
     for (uint256 i = 0; i < _payouts.length; i += 1) {
-      // This contract can be used for multiple rounds, so we add the amount instead of setting it.
-      // That way if a grant owner does not lose their match if they don't withdraw it until the
-      // next round
-      payouts[_payouts[i].recipient] += _payouts[i].amount;
-      PayoutAdded(_payouts[i].recipient, _payouts[i].amount);
-    }
-
-    // Finalize if specified
-    if (_readyForPayout) {
-      // TODO should this flag instead be an explicit toggle, instead of setting it here and
-      // clearing it in `reset()`?
-      readyForPayout = _readyForPayout;
-      emit PayoutFlagSet(_readyForPayout);
+      payouts[_payouts[i].recipient] = _payouts[i].amount;
+      emit PayoutAdded(_payouts[i].recipient, _payouts[i].amount);
     }
   }
 
   /**
-   * @notice Allows contract owner to reset `finalized` parameter to re-use contract
+   * @notice Called by the owner to signal that the payout mapping is finalized
+   * @dev Once called, this cannot be reversed!
+   * @dev We use an explicit method here instead of doing this as part of the `setPayouts()` method
+   * to reduce the chance of accidentally setting this flag
    */
-  function reset() external onlyOwner {
-    // TODO Should we require a delay, e.g. 1 month, between when readyForPayout is set to true
-    // vs. when this can be called?
-    readyForPayout = false;
-    emit PayoutFlagSet(false);
+  function finalize() external onlyOwner {
+    finalized = true;
+    emit Finalized();
+  }
+
+  /**
+   * @notice Enables funder to withdraw all funds
+   * @dev Escape hatch, intended to be used if the payout mapping is finalized incorrectly. In this
+   * case a new MatchPayouts contract can be deployed and that one will be used instead
+   */
+  function withdrawFunding() external {
+    require(msg.sender == funder, "MatchPayouts: caller is not the funder");
+    dai.safeTransfer(funder, dai.balanceOf(address(this)));
+    emit FundingWithdrawn();
+  }
+
+  /**
+   * @notice Called by the owner to enable withdrawals of match payouts
+   * @dev Once called, this cannot be reversed!
+   */
+  function enablePayouts() external onlyOwner onlyWhenFinalized {
+    funded = true;
+    emit Funded();
+  }
+
+  /**
+   * @notice Withdraws funds owed to `_recipient`
+   * @param _recipient Address to withdraw for
+   */
+  function claimMatchPayout(address _recipient) external onlyWhenFinalized {
+    require(funded, "MatchPayouts: Not yet funded");
+    dai.safeTransfer(_recipient, payouts[_recipient]);
+    payouts[_recipient] = 0; // safe to put effect after interaction since we trust the Dai contract
+    emit PayoutClaimed(_recipient);
   }
 }

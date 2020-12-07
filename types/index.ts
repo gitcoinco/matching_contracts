@@ -5,7 +5,7 @@ export interface Accounts {
   owner: string; // user that will own the contract
   newOwner: string; // in tests, owner transfers ownership to this user
   evilUser: string; // address of user who tries to bypass contract restrictions
-  funders: string[]; // users who fund the grants round
+  funder: string; // user who funds the grants round
   grantOwners: string[]; // grant owners who receive match payouts
 }
 
@@ -14,6 +14,6 @@ export interface Signers {
   owner: Signer;
   newOwner: Signer;
   evilUser: Signer;
-  funders: Signer[];
+  funder: Signer;
   grantOwners: Signer[];
 }

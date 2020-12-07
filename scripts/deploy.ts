@@ -13,11 +13,12 @@ async function main(): Promise<void> {
 
   // Define constructor parameters
   const owner = '0x00De4B13153673BCAE2616b67bf822500d325Fc3';
+  const funder = '0xde21F729137C5Af1b01d73aF1dC21eFfa2B8a0d6'; // Gitcoin Grants multisig
   const daiAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // TODO update based on network
 
   // We get the contract to deploy
   const MatchPayouts: ContractFactory = await ethers.getContractFactory('MatchPayouts');
-  const matchPayouts: Contract = await MatchPayouts.deploy(owner, daiAddress);
+  const matchPayouts: Contract = await MatchPayouts.deploy(owner, funder, daiAddress);
   await matchPayouts.deployed();
 
   console.log('MatchPayouts deployed to: ', matchPayouts.address);
