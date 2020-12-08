@@ -4,6 +4,8 @@ Non-custodial match payouts for Gitcoin Grants.
 
 ## About
 
+<img width="900" src="https://p200.p0.n0.cdn.getcloudapp.com/items/12uKrDq5/Screen%20Shot%202020-12-08%20at%208.41.45%20AM.png?source=viewer&v=ecde302feb2463818307271ae4e22026" alt="Architecture">
+
 This contract allows for non-custodial Gitcoin Grants match payouts. It works as follows:
 
 1. During a matching round, deploy a new instance of this contract
