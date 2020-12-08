@@ -132,11 +132,11 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal('0');
       expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
-      const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(this.accounts.grantOwners[0]);
-      await expect(tx1).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(this.accounts.grantOwners[0]);
+      const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(payouts[0].recipient);
+      await expect(tx1).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(payouts[0].recipient, payouts[0].amount);
 
-      const tx2 = this.matchPayouts.connect(this.signers.grantOwners[1]).claimMatchPayout(this.accounts.grantOwners[1]);
-      await expect(tx2).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(this.accounts.grantOwners[1]);
+      const tx2 = this.matchPayouts.connect(this.signers.grantOwners[1]).claimMatchPayout(payouts[1].recipient);
+      await expect(tx2).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(payouts[1].recipient, payouts[1].amount);
     });
 
     it('End to end test of everything after payout mapping is finalized', async function () {
@@ -172,8 +172,8 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // First grant owner withdraws on their own
-      const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(this.accounts.grantOwners[0]);
-      await expect(tx1).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(this.accounts.grantOwners[0]);
+      const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(payouts[0].recipient);
+      await expect(tx1).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(payouts[0].recipient, payouts[0].amount);
 
       // Make sure contract balance decreased
       const firstBalance = funderAmount.sub(matchAmounts[0]); // expected contract balance
@@ -184,8 +184,8 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // Evil user tries to withdraw funds for second grant owner
-      const tx2 = this.matchPayouts.connect(this.signers.evilUser).claimMatchPayout(this.accounts.grantOwners[1]);
-      await expect(tx2).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(this.accounts.grantOwners[1]);
+      const tx2 = this.matchPayouts.connect(this.signers.evilUser).claimMatchPayout(payouts[1].recipient);
+      await expect(tx2).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(payouts[1].recipient, payouts[1].amount);
 
       // Make sure contract balance decreased again
       const secondBalance = firstBalance.sub(matchAmounts[1]); // new expected contract balance
