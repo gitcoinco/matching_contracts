@@ -40,7 +40,7 @@ contract MatchPayouts {
   IERC20 public immutable dai;
 
   /// @dev Convenience type used for setting inputs
-  struct Payout {
+  struct PayoutFields {
     address recipient; // grant receiving address
     uint256 amount; // match amount for that grant
   }
@@ -70,7 +70,7 @@ contract MatchPayouts {
   event PayoutAdded(address recipient, uint256 amount);
 
   /// @dev Emitted when a `recipient` withdraws their payout
-  event PayoutClaimed(address recipient);
+  event PayoutClaimed(address recipient, uint256 amount);
 
   // ================================== CONSTRUCTOR AND MODIFIERS ==================================
 
@@ -106,7 +106,7 @@ contract MatchPayouts {
    * on the number of grants
    * @param _payouts Array of `Payout`s to set
    */
-  function setPayouts(Payout[] calldata _payouts) external onlyOwner {
+  function setPayouts(PayoutFields[] calldata _payouts) external onlyOwner {
     require(!finalized, "MatchPayouts: Payouts already finalized");
     // Set each payout amount
     for (uint256 i = 0; i < _payouts.length; i += 1) {
@@ -155,6 +155,6 @@ contract MatchPayouts {
     uint256 _amount = payouts[_recipient]; // save off amount owed
     payouts[_recipient] = 0; // clear storage to mitigate reentrancy (not likely anyway since we trust Dai)
     dai.safeTransfer(_recipient, _amount);
-    emit PayoutClaimed(_recipient);
+    emit PayoutClaimed(_recipient, _amount);
   }
 }
