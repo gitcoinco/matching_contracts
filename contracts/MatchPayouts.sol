@@ -20,7 +20,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  *  6. Grant owners can now call `withdraw()` to have their match payout sent to their address.
  *     Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
  *     grants address cannot call contract methods.
- * 
+ *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *        WARNING: DO NOT SEND ANYTHING EXCEPT FOR DAI TO THIS CONTRACT OR IT WILL BE LOST!        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -152,8 +152,9 @@ contract MatchPayouts {
    */
   function claimMatchPayout(address _recipient) external onlyWhenFinalized {
     require(funded, "MatchPayouts: Not yet funded");
-    dai.safeTransfer(_recipient, payouts[_recipient]);
-    payouts[_recipient] = 0; // safe to put effect after interaction since we trust the Dai contract
+    uint256 _amount = payouts[_recipient]; // save off amount owed
+    payouts[_recipient] = 0; // clear storage to mitigate reentrancy (not likely anyway since we trust Dai)
+    dai.safeTransfer(_recipient, _amount);
     emit PayoutClaimed(_recipient);
   }
 }
