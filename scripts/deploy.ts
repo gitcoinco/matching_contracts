@@ -2,26 +2,59 @@
 // but useful for running the script in a standalone fashion through `node <script>`.
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers } from 'hardhat';
+import hre from 'hardhat';
 import { Contract, ContractFactory } from 'ethers';
+import { ConstructorArgs } from '../types';
+import { Signer } from '@ethersproject/abstract-signer';
+
+const { ethers } = hre;
+const padding = 25; // spacing for console.log outputs
+
+// Define constructor arguments by network
+const constructorArgs: Record<string, ConstructorArgs> = {
+  localhost: {
+    // localhost values populated at runtime
+    owner: '',
+    funder: '',
+    dai: '',
+  },
+  mainnet: {
+    owner: '0x00De4B13153673BCAE2616b67bf822500d325Fc3',
+    funder: '0xde21F729137C5Af1b01d73aF1dC21eFfa2B8a0d6', // Gitcoin Grants multisig
+    dai: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  },
+};
 
 async function main(): Promise<void> {
+  const network = hre.network.name;
+
   // Hardhat always runs the compile task when running scripts through it.
   // If this runs in a standalone fashion you may want to call compile manually
   // to make sure everything is compiled
-  // await run("compile");
+  await hre.run('compile');
 
-  // Define constructor parameters
-  const owner = '0x00De4B13153673BCAE2616b67bf822500d325Fc3';
-  const funder = '0xde21F729137C5Af1b01d73aF1dC21eFfa2B8a0d6'; // Gitcoin Grants multisig
-  const daiAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // TODO update based on network
+  // If localhost, deploy mock DAI and configure constructor arguments
+  if (network === 'localhost') {
+    // Deploy Mock DAI
+    console.log('Deploying mock DAI on localhost...');
+    const Dai: ContractFactory = await ethers.getContractFactory('MockERC20');
+    const dai: Contract = await Dai.deploy('Dai', 'DAI');
+    await dai.deployed();
+    console.log('Mock DAI deployed to'.padEnd(padding), dai.address);
 
-  // We get the contract to deploy
+    // Set constructor arguments
+    const signers: Signer[] = await ethers.getSigners();
+    constructorArgs[network].owner = await signers[1].getAddress();
+    constructorArgs[network].funder = await signers[2].getAddress();
+    constructorArgs[network].dai = dai.address;
+  }
+
+  // Deploy MatchPayouts contract
+  const { owner, funder, dai } = constructorArgs[network];
   const MatchPayouts: ContractFactory = await ethers.getContractFactory('MatchPayouts');
-  const matchPayouts: Contract = await MatchPayouts.deploy(owner, funder, daiAddress);
+  const matchPayouts: Contract = await MatchPayouts.deploy(owner, funder, dai);
   await matchPayouts.deployed();
-
-  console.log('MatchPayouts deployed to: ', matchPayouts.address);
+  console.log('MatchPayouts deployed to'.padEnd(padding), matchPayouts.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
