@@ -17,3 +17,9 @@ export interface Signers {
   funder: Signer;
   grantOwners: Signer[];
 }
+
+export interface ConstructorArgs {
+  owner: string; // Contract owner
+  funder: string; // Gitcoin Grants multisig
+  dai: string; // Dai address
+}
