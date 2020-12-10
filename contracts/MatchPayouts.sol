@@ -119,7 +119,7 @@ contract MatchPayouts {
    * @dev We use an explicit method here instead of doing this as part of the `setPayouts()` method
    * to reduce the chance of accidentally setting this flag
    */
-  function finalize() external onlyOwner {
+  function finalize() external onlyOwner requireState(State.Waiting) {
     state = State.Finalized;
     emit Finalized();
   }

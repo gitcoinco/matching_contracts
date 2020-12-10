@@ -20,7 +20,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the owner');
     });
 
-    it('restricts who can set the `finalized` flag', async function () {
+    it('restricts who can set the contract as Finalized', async function () {
       const tx = this.matchPayouts.connect(this.signers.evilUser).finalize();
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the owner');
     });
@@ -30,12 +30,20 @@ export function shouldBehaveLikeMatchPayouts(): void {
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the funder');
     });
 
-    it('restricts who can set the `funded` flag', async function () {
+    it('restricts who can set the contract as Funded', async function () {
       const tx = this.matchPayouts.connect(this.signers.evilUser).enablePayouts();
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the owner');
     });
 
-    it('prevents setting the payout mapping when the `finalized` flag is true', async function () {
+    it('prevents calling `finalize` if not in the Waiting state', async function () {
+      expect(await this.matchPayouts.state()).to.equal(0); // 0 = Waiting
+      await this.matchPayouts.connect(this.signers.owner).finalize();
+      expect(await this.matchPayouts.state()).to.equal(1); // 1 = Finalized
+      const tx = this.matchPayouts.connect(this.signers.owner).finalize();
+      await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
+    });
+
+    it('prevents setting the payout mapping when contract is Finalized', async function () {
       // Activate flag
       await this.matchPayouts.connect(this.signers.owner).finalize();
       // Try to set payouts
@@ -44,12 +52,12 @@ export function shouldBehaveLikeMatchPayouts(): void {
       await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
     });
 
-    it('prevents toggling the `funded` flag if `finalized` is false', async function () {
+    it('prevents moving to Funded state if not in Finalized state', async function () {
       const tx = this.matchPayouts.connect(this.signers.owner).enablePayouts();
       await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
     });
 
-    it('prevents match from being withdrawn when `funded` is false', async function () {
+    it('prevents match from being withdrawn when not in Funded state', async function () {
       await this.matchPayouts.connect(this.signers.owner).finalize();
       const tx = this.matchPayouts.connect(this.signers.evilUser).claimMatchPayout(this.accounts.evilUser);
       await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
