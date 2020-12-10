@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { Signer } from '@ethersproject/abstract-signer';
 import { task } from 'hardhat/config';
 import { MatchPayouts } from '../typechain/index';
@@ -23,7 +24,7 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
     const amount = parseEther(String(1000 * (index + 1))); // e.g. 1000 DAI, 2000 DAI, etc.
     payouts.push({
       recipient: address,
-      amount: amount,
+      amount: amount.toString(),
     });
   }
 
@@ -32,4 +33,10 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
   const tx = await matchPayouts.connect(owner).setPayouts(payouts);
   await tx.wait();
   console.log('Payout mapping set!');
+
+  // Save off payout mapping to verify it later
+  const json = JSON.stringify(payouts);
+  const outDir = 'outputs';
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir); // Create outputs folder if it doesn't exist
+  fs.writeFileSync(`${outDir}/payouts.json`, json);
 });
