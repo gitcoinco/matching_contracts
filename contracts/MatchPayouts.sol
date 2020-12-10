@@ -48,19 +48,17 @@ contract MatchPayouts {
   /// @dev Maps a grant's receiving address their match amount
   mapping(address => uint256) public payouts;
 
-  /// @dev When true, the payouts mapping is finalized and cannot be updated
-  bool public finalized;
-
-  /// @dev When true, the contract has been funded and withdrawals can begin. Contract must be
-  /// `finalized` before it can be `funded`
-  bool public funded;
+  /// @dev `Waiting` for payment mapping to be set, then mapping is `Finalized`, and lastly the
+  /// contract is `Funded`
+  enum State {Waiting, Finalized, Funded}
+  State public state = State.Waiting;
 
   // =========================================== EVENTS ============================================
 
-  /// @dev Emitted when the `finalized` flag is set
+  /// @dev Emitted when state is set to `Finalized`
   event Finalized();
 
-  /// @dev Emitted when the `funded` flag is set
+  /// @dev Emitted when state is set to `Funded`
   event Funded();
 
   /// @dev Emitted when the funder reclaims the funds in this contract
@@ -91,9 +89,9 @@ contract MatchPayouts {
     _;
   }
 
-  /// @dev Only allows method to be called once the payouts mapping has been finalized
-  modifier onlyWhenFinalized() {
-    require(finalized, "MatchPayouts: Payouts not finalized");
+  /// @dev Prevents method from being called unless contract is in the specified state
+  modifier requireState(State _state) {
+    require(state == _state, "MatchPayouts: Not in required state");
     _;
   }
 
@@ -106,9 +104,9 @@ contract MatchPayouts {
    * on the number of grants
    * @param _payouts Array of `Payout`s to set
    */
-  function setPayouts(PayoutFields[] calldata _payouts) external onlyOwner {
-    require(!finalized, "MatchPayouts: Payouts already finalized");
-    // Set each payout amount
+  function setPayouts(PayoutFields[] calldata _payouts) external onlyOwner requireState(State.Waiting) {
+    // Set each payout amount. We allow amount to be overriden in subsequent calls because this lets
+    // us fix mistakes before finalizing the payout mapping
     for (uint256 i = 0; i < _payouts.length; i += 1) {
       payouts[_payouts[i].recipient] = _payouts[i].amount;
       emit PayoutAdded(_payouts[i].recipient, _payouts[i].amount);
@@ -122,7 +120,7 @@ contract MatchPayouts {
    * to reduce the chance of accidentally setting this flag
    */
   function finalize() external onlyOwner {
-    finalized = true;
+    state = State.Finalized;
     emit Finalized();
   }
 
@@ -130,6 +128,7 @@ contract MatchPayouts {
    * @notice Enables funder to withdraw all funds
    * @dev Escape hatch, intended to be used if the payout mapping is finalized incorrectly. In this
    * case a new MatchPayouts contract can be deployed and that one will be used instead
+   * @dev We trust the funder, which is why they are allowed to withdraw funds at any time
    */
   function withdrawFunding() external {
     require(msg.sender == funder, "MatchPayouts: caller is not the funder");
@@ -141,8 +140,8 @@ contract MatchPayouts {
    * @notice Called by the owner to enable withdrawals of match payouts
    * @dev Once called, this cannot be reversed!
    */
-  function enablePayouts() external onlyOwner onlyWhenFinalized {
-    funded = true;
+  function enablePayouts() external onlyOwner requireState(State.Finalized) {
+    state = State.Funded;
     emit Funded();
   }
 
@@ -150,8 +149,7 @@ contract MatchPayouts {
    * @notice Withdraws funds owed to `_recipient`
    * @param _recipient Address to withdraw for
    */
-  function claimMatchPayout(address _recipient) external onlyWhenFinalized {
-    require(funded, "MatchPayouts: Not yet funded");
+  function claimMatchPayout(address _recipient) external requireState(State.Funded) {
     uint256 _amount = payouts[_recipient]; // save off amount owed
     payouts[_recipient] = 0; // clear storage to mitigate reentrancy (not likely anyway since we trust Dai)
     dai.safeTransfer(_recipient, _amount);

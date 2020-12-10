@@ -8,8 +8,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.matchPayouts.owner()).to.equal(this.accounts.owner);
       expect(await this.matchPayouts.funder()).to.equal(this.accounts.funder);
       expect(await this.matchPayouts.dai()).to.equal(this.dai.address);
-      expect(await this.matchPayouts.finalized()).to.equal(false);
-      expect(await this.matchPayouts.funded()).to.equal(false);
+      expect(await this.matchPayouts.state()).to.equal(0); // 0 = Waiting
     });
   });
 
@@ -42,18 +41,18 @@ export function shouldBehaveLikeMatchPayouts(): void {
       // Try to set payouts
       const payouts = [{ recipient: this.accounts.evilUser, amount: parseEther('1') }];
       const tx = this.matchPayouts.connect(this.signers.owner).setPayouts(payouts);
-      await expect(tx).to.be.revertedWith('MatchPayouts: Payouts already finalized');
+      await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
     });
 
     it('prevents toggling the `funded` flag if `finalized` is false', async function () {
       const tx = this.matchPayouts.connect(this.signers.owner).enablePayouts();
-      await expect(tx).to.be.revertedWith('MatchPayouts: Payouts not finalized');
+      await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
     });
 
     it('prevents match from being withdrawn when `funded` is false', async function () {
       await this.matchPayouts.connect(this.signers.owner).finalize();
       const tx = this.matchPayouts.connect(this.signers.evilUser).claimMatchPayout(this.accounts.evilUser);
-      await expect(tx).to.be.revertedWith('MatchPayouts: Not yet funded');
+      await expect(tx).to.be.revertedWith('MatchPayouts: Not in required state');
     });
   });
 
@@ -77,16 +76,16 @@ export function shouldBehaveLikeMatchPayouts(): void {
         .withArgs(this.accounts.grantOwners[0], matchAmounts[0]);
 
       // Check that payouts were set properly
-      expect(await this.matchPayouts.finalized()).to.equal(false); // sanity check that contract didn't finalize
+      expect(await this.matchPayouts.state()).to.equal(0); // sanity check that contract didn't finalize
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
     });
 
     it('lets the owner finalize payout mapping', async function () {
-      expect(await this.matchPayouts.finalized()).to.equal(false);
+      expect(await this.matchPayouts.state()).to.equal(0); // 0 = Waiting
       const tx = this.matchPayouts.connect(this.signers.owner).finalize();
       await expect(tx).to.emit(this.matchPayouts, 'Finalized');
-      expect(await this.matchPayouts.finalized()).to.equal(true);
+      expect(await this.matchPayouts.state()).to.equal(1); // 1 = Finalized
     });
 
     it('lets the funder withdraw their DAI', async function () {
@@ -104,11 +103,12 @@ export function shouldBehaveLikeMatchPayouts(): void {
     });
 
     it('lets the owner indicate that match payments can be withdrawn', async function () {
-      expect(await this.matchPayouts.funded()).to.equal(false);
+      expect(await this.matchPayouts.state()).to.equal(0); // 0 = Waiting
       await this.matchPayouts.connect(this.signers.owner).finalize();
+      expect(await this.matchPayouts.state()).to.equal(1); // 1 = Finalized
       const tx = this.matchPayouts.connect(this.signers.owner).enablePayouts();
       await expect(tx).to.emit(this.matchPayouts, 'Funded');
-      expect(await this.matchPayouts.funded()).to.equal(true);
+      expect(await this.matchPayouts.state()).to.equal(2); // 2 = Funded
     });
 
     it('lets users claim match payouts', async function () {
