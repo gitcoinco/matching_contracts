@@ -55,7 +55,8 @@
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
     "typechain": "hardhat typechain",
-    "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\""
+    "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
+    "set-payouts": "yarn hardhat --network localhost set-payouts"
   },
   "husky": {
     "hooks": {

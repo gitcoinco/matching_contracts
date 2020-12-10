@@ -1,4 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer';
+import { BigNumber } from '@ethersproject/bignumber';
 
 export interface Accounts {
   deployer: string; // user that will deploy the contract
@@ -18,8 +19,15 @@ export interface Signers {
   grantOwners: Signer[];
 }
 
+// Match payout constructor arguments
 export interface ConstructorArgs {
   owner: string; // Contract owner
   funder: string; // Gitcoin Grants multisig
   dai: string; // Dai address
+}
+
+// Used for setting payout mapping
+export interface PayoutFields {
+  recipient: string;
+  amount: BigNumber;
 }
