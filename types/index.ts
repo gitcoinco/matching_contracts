@@ -1,5 +1,4 @@
 import { Signer } from '@ethersproject/abstract-signer';
-import { BigNumber } from '@ethersproject/bignumber';
 
 export interface Accounts {
   deployer: string; // user that will deploy the contract
@@ -29,5 +28,5 @@ export interface ConstructorArgs {
 // Used for setting payout mapping
 export interface PayoutFields {
   recipient: string;
-  amount: BigNumber;
+  amount: string;
 }

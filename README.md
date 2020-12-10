@@ -27,68 +27,78 @@ This contract is deployed on mainnet at TBD
 
 ## Development
 
-### Setup
-
-Install dependencies:
+### Contract Setup
 
 ```sh
+# Install dependencies
 $ yarn install
-```
 
-### Compile
-
-Compile the smart contracts with Hardhat:
-
-```sh
+# Compile the smart contracts with Hardhat
 $ yarn compile
-```
 
-### TypeChain
-
-Compile the smart contracts and generate TypeChain artifacts:
-
-```sh
+# Compile the smart contracts and generate TypeChain artifacts
 $ yarn build
-```
 
-### Lint Solidity
-
-Lint the Solidity code:
-
-```sh
+# Lint the Solidity code
 $ yarn lint:sol
-```
 
-### Lint TypeScript
-
-Lint the TypeScript code:
-
-```sh
+# Lint the TypeScript code
 $ yarn lint:ts
-```
 
-### Test
-
-Run the Mocha tests:
-
-```sh
+# Run tests
 $ yarn test
-```
 
-### Coverage
-
-Generate the code coverage report:
-
-```sh
+# Generate the code coverage report
 $ yarn coverage
+
+# Delete the smart contract artifacts, the coverage reports and the Hardhat cache
+$ yarn clean
 ```
 
-### Clean
+### Python Setup
 
-Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
+For the following section you'll need python setup. To do this, follow the commands below:
 
 ```sh
-$ yarn clean
+# Create a new virtual environment in this directory
+python3 -m venv venv
+
+# Activate the virtual environment
+source ./venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Test Workflow
+
+This section explains how to deploy a local instance of the contract and run Python scripts to
+check the contract state. The final versions of this script live in the
+[gitcoin/web](https://github.com/gitcoinco/web/) repo, but were developed here.
+
+First let's deploy the contracts locally.
+
+```sh
+$ yarn deploy:local
+```
+
+Now we want to set a payout mapping and verify the results before finalizing it. We can do this with
+the below command, which will set the payout mapping and save the mapping to `outputs/payouts.json`
+so we can verify it later
+
+```sh
+$ yarn set-payouts
+```
+
+Let's compare the total value of the payouts mapping from the events to what we'd expect from
+`payouts.json`, and let's compare that to the DAI balance of the contract.
+
+```sh
+# Make sure the virtual environment is activated
+$ source ./venv/bin/activate
+
+# Run the script
+python scripts/check-payouts.py
 ```
 
 ## Acknowledgements
