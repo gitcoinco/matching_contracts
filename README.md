@@ -2,6 +2,14 @@
 
 Non-custodial match payouts for Gitcoin Grants.
 
+- [Gitcoin Matching Contracts](#gitcoin-matching-contracts)
+  - [About](#about)
+  - [Development](#development)
+    - [Contract Setup](#contract-setup)
+    - [Python Setup](#python-setup)
+    - [Test Workflow](#test-workflow)
+  - [Acknowledgements](#acknowledgements)
+
 ## About
 
 <img width="900" src="https://p200.p0.n0.cdn.getcloudapp.com/items/12uKrDq5/Screen%20Shot%202020-12-08%20at%208.41.45%20AM.png?source=viewer&v=ecde302feb2463818307271ae4e22026" alt="Architecture">
@@ -26,6 +34,8 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
 This contract is deployed on mainnet at TBD
 
 ## Development
+
+Create a copy of `.env.example` and fill in the environment variables, the proceed to the following sections.
 
 ### Contract Setup
 
@@ -57,7 +67,7 @@ $ yarn clean
 
 ### Python Setup
 
-For the following section you'll need python setup. To do this, follow the commands below:
+For the following section you'll need python. To get setup, follow the commands below:
 
 ```sh
 # Create a new virtual environment in this directory
@@ -82,6 +92,8 @@ First let's deploy the contracts locally.
 $ yarn deploy:local
 ```
 
+Wait a few seconds for that to complete.
+
 Now we want to set a payout mapping and verify the results before finalizing it. We can do this with
 the below command, which will set the payout mapping and save the mapping to `outputs/payouts.json`
 so we can verify it later
@@ -97,9 +109,15 @@ Let's compare the total value of the payouts mapping from the events to what we'
 # Make sure the virtual environment is activated
 $ source ./venv/bin/activate
 
-# Run the script
-python scripts/check-payouts.py
+# Run the python script
+yarn verify-payouts
 ```
+
+As expected, the contract does not have enough DAI to cover all match payouts.
+
+Run `yarn fund` to simulate the funder adding DAI to the contract. Now run `yarn verify-payouts`
+again and it will show the contract has sufficient funds! At this point, the owner can call
+`enablePayouts` to let grant owners withdraw their match amounts.
 
 ## Acknowledgements
 

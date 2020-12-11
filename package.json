@@ -56,7 +56,9 @@
     "test": "hardhat test",
     "typechain": "hardhat typechain",
     "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
-    "set-payouts": "yarn hardhat --network localhost set-payouts"
+    "set-payouts": "yarn hardhat --network localhost set-payouts",
+    "verify-payouts": "python scripts/verify-payouts.py",
+    "fund": "yarn hardhat --network localhost fund"
   },
   "husky": {
     "hooks": {
