@@ -46,8 +46,8 @@ $ yarn install
 # Compile the smart contracts with Hardhat
 $ yarn compile
 
-# Compile the smart contracts and generate TypeChain artifacts
-$ yarn build
+# Generate TypeChain artifacts
+$ yarn typechain
 
 # Lint the Solidity code
 $ yarn lint:sol
