@@ -7,6 +7,7 @@ import { NetworkUserConfig } from 'hardhat/types';
 import './tasks/accounts';
 import './tasks/clean';
 import './tasks/set-payouts';
+import './tasks/fund';
 
 import '@nomiclabs/hardhat-waffle';
 import 'hardhat-typechain';
