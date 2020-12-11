@@ -53,7 +53,7 @@
     "lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
     "lint:ts": "eslint --config ./.eslintrc.yaml --ignore-path ./.eslintignore --ext .js,.ts .",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,json,md,sol,ts}\"",
-    "test": "hardhat test",
+    "test": "yarn compile && hardhat test",
     "typechain": "hardhat typechain",
     "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
     "set-payouts": "yarn hardhat --network localhost set-payouts",

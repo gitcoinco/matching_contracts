@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { Signer } from '@ethersproject/abstract-signer';
 import { task } from 'hardhat/config';
-import { MatchPayouts } from '../typechain/index';
 import { PayoutFields } from '../types';
 
 task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) => {
@@ -13,7 +12,7 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
 
   // Since this task is for localhost only, the contract addresses are deterministic
   const matchPayoutsAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-  const matchPayouts = (await hre.ethers.getContractAt('MatchPayouts', matchPayoutsAddress)) as MatchPayouts;
+  const matchPayouts = await hre.ethers.getContractAt('MatchPayouts', matchPayoutsAddress);
 
   // Define payout mapping
   const payouts: PayoutFields[] = [];
