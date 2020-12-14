@@ -99,7 +99,7 @@ the below command, which will set the payout mapping and save the mapping to `ou
 so we can verify it later
 
 ```sh
-$ yarn set-payouts
+$ yarn sim:set-payouts
 ```
 
 Let's compare the total value of the payouts mapping from the events to what we'd expect from
@@ -107,12 +107,12 @@ Let's compare the total value of the payouts mapping from the events to what we'
 
 ```sh
 # Run the python script
-yarn verify-payouts
+yarn sim:verify-payouts
 ```
 
 As expected, the contract does not have enough DAI to cover all match payouts.
 
-Run `yarn fund` to simulate the funder adding DAI to the contract. Now run `yarn verify-payouts`
+Run `yarn sim:fund` to simulate the funder adding DAI to the contract. Now run `yarn sim:verify-payouts`
 again and it will show the contract has sufficient funds! At this point, the owner can call
 `enablePayouts` to let grant owners withdraw their match amounts.
 
