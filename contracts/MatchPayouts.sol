@@ -62,7 +62,7 @@ contract MatchPayouts {
   event Funded();
 
   /// @dev Emitted when the funder reclaims the funds in this contract
-  event FundingWithdrawn();
+  event FundingWithdrawn(IERC20 token, uint256 amount);
 
   /// @dev Emitted when a payout `amount` is added to the `recipient`'s payout total
   event PayoutAdded(address recipient, uint256 amount);
@@ -129,11 +129,13 @@ contract MatchPayouts {
    * @dev Escape hatch, intended to be used if the payout mapping is finalized incorrectly. In this
    * case a new MatchPayouts contract can be deployed and that one will be used instead
    * @dev We trust the funder, which is why they are allowed to withdraw funds at any time
+   * @param _token Address of token to withdraw from this contract
    */
-  function withdrawFunding() external {
+  function withdrawFunding(IERC20 _token) external {
     require(msg.sender == funder, "MatchPayouts: caller is not the funder");
-    dai.safeTransfer(funder, dai.balanceOf(address(this)));
-    emit FundingWithdrawn();
+    uint256 _balance = _token.balanceOf(address(this));
+    _token.safeTransfer(funder, _balance);
+    emit FundingWithdrawn(_token, _balance);
   }
 
   /**
