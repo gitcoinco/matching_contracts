@@ -106,9 +106,6 @@ Let's compare the total value of the payouts mapping from the events to what we'
 `payouts.json`, and let's compare that to the DAI balance of the contract.
 
 ```sh
-# Make sure the virtual environment is activated
-$ source ./venv/bin/activate
-
 # Run the python script
 yarn verify-payouts
 ```
