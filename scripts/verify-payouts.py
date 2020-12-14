@@ -33,8 +33,11 @@ erc20_abi = '[{"constant":true,"inputs":[],"name":"mintingFinished","outputs":[{
 
 # Get expected total match amount
 expected_total_dai_amount = Decimal(0)
-for payout in expected_payouts:
-  expected_total_dai_amount += Decimal(payout['amount'])
+for (index,payout) in enumerate(expected_payouts):
+  # Skip the first one since we intentionally duplicated it in our payment mapping to ensure it gets
+  # filtered out when parsing event logs later
+  if index != 0:
+    expected_total_dai_amount += Decimal(payout['amount'])
 expected_total_dai_amount = expected_total_dai_amount / SCALE
 
 # Get contract instances
@@ -46,11 +49,20 @@ dai = w3.eth.contract(address=dai_address, abi=erc20_abi)
 payout_added_filter = match_payouts.events.PayoutAdded.createFilter(fromBlock=from_block)
 payout_added_logs = payout_added_filter.get_all_entries() # print these if you need to inspect them
 
-# Get total required DAI balance based on PayoutAdded events
-total_dai_required = Decimal(0)
+# Get total required DAI balance based on PayoutAdded events. Events will be sorted chronologically,
+# so if a recipient is duplicated we only keep the latest entry. We do this by storing our own
+# mapping from recipients to match amount, and overwriting it as needed just like the contract would
+payment_dict = {}
 for log in payout_added_logs:
-  total_dai_required += Decimal(log['args']['amount'])
-total_dai_required = total_dai_required / SCALE # convert to human units
+  recipient = log['args']['recipient']
+  amount = Decimal(log['args']['amount'])
+  payment_dict[recipient] = amount
+
+# Sum up each entry to get the total required amount
+total_dai_required_wei = sum(payment_dict[recipient] for recipient in payment_dict.keys())
+
+# Convert to human units
+total_dai_required = total_dai_required_wei / SCALE 
 
 # Verify that total DAI required (from event logs) equals the expected amount
 if expected_total_dai_amount != total_dai_required:

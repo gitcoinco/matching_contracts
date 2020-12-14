@@ -25,6 +25,13 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
       recipient: address,
       amount: amount.toString(),
     });
+    // Push a duplicate entry for the first item to ensure it gets filtered out in verify-payouts
+    if (index === 0) {
+      payouts.push({
+        recipient: address,
+        amount: amount.toString(),
+      });
+    }
   }
 
   // Set payout mapping
