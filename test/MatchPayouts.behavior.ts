@@ -26,7 +26,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
     });
 
     it("restricts who is allowed to withdraw funders' DAI from the contract", async function () {
-      const tx = this.matchPayouts.connect(this.signers.evilUser).withdrawFunding();
+      const tx = this.matchPayouts.connect(this.signers.evilUser).withdrawFunding(this.dai.address);
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the funder');
     });
 
@@ -104,8 +104,8 @@ export function shouldBehaveLikeMatchPayouts(): void {
       expect(await this.dai.balanceOf(this.accounts.funder)).to.equal('0');
 
       // Withdraw funds
-      const tx = this.matchPayouts.connect(this.signers.funder).withdrawFunding();
-      await expect(tx).to.emit(this.matchPayouts, 'FundingWithdrawn');
+      const tx = this.matchPayouts.connect(this.signers.funder).withdrawFunding(this.dai.address);
+      await expect(tx).to.emit(this.matchPayouts, 'FundingWithdrawn').withArgs(this.dai.address, funderAmount);
       expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal('0');
       expect(await this.dai.balanceOf(this.accounts.funder)).to.equal(funderAmount);
     });
