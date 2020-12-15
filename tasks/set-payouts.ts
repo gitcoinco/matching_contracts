@@ -25,13 +25,6 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
       recipient: address,
       amount: amount.toString(),
     });
-    // Push a duplicate entry for the first item to ensure it gets filtered out in verify-payouts
-    if (index === 0) {
-      payouts.push({
-        recipient: address,
-        amount: amount.toString(),
-      });
-    }
   }
 
   // Set payout mapping
@@ -39,6 +32,13 @@ task('set-payouts', 'Sets a payout mapping for testing', async (_taskArgs, hre) 
   const tx = await matchPayouts.connect(owner).setPayouts(payouts);
   await tx.wait();
   console.log('Payout mapping set!');
+
+  // In a separate transaction (different block), set the duplicate entry. We do this to ensure it
+  // gets filtered out in verify-payouts.py. We do not do it in the same transaction, because
+  // verify-payouts.py throws an error if a recipient is set twice in the same block
+  const duplicatePayout = [{ recipient: payouts[0].recipient, amount: payouts[0].amount }];
+  const tx2 = await matchPayouts.connect(owner).setPayouts(duplicatePayout);
+  await tx2.wait();
 
   // Save off payout mapping to verify it later
   const json = JSON.stringify(payouts);

@@ -34,10 +34,7 @@ erc20_abi = '[{"constant":true,"inputs":[],"name":"mintingFinished","outputs":[{
 # Get expected total match amount
 expected_total_dai_amount = Decimal(0)
 for (index,payout) in enumerate(expected_payouts):
-  # Skip the first one since we intentionally duplicated it in our payment mapping to ensure it gets
-  # filtered out when parsing event logs later
-  if index != 0:
-    expected_total_dai_amount += Decimal(payout['amount'])
+  expected_total_dai_amount += Decimal(payout['amount'])
 expected_total_dai_amount = expected_total_dai_amount / SCALE
 
 # Get contract instances
@@ -49,14 +46,31 @@ dai = w3.eth.contract(address=dai_address, abi=erc20_abi)
 payout_added_filter = match_payouts.events.PayoutAdded.createFilter(fromBlock=from_block)
 payout_added_logs = payout_added_filter.get_all_entries() # print these if you need to inspect them
 
+# Sort payout logs by ascending block number, this way if a recipient appears in multiple blocks
+# we use the value from the latest block
+sorted_payout_added_logs = sorted(payout_added_logs, key=lambda log:log['blockNumber'], reverse=False)
+
 # Get total required DAI balance based on PayoutAdded events. Events will be sorted chronologically,
 # so if a recipient is duplicated we only keep the latest entry. We do this by storing our own
-# mapping from recipients to match amount, and overwriting it as needed just like the contract would
+# mapping from recipients to match amount and overwriting it as needed just like the contract would.
+# We keep another dict that maps the recipient's addresses to the block it was found in. If we find
+# two entries for the same user in the same block, we throw, since we don't know which is the
+# correct one
 payment_dict = {}
-for log in payout_added_logs:
+user_block_dict = {}
+for log in sorted_payout_added_logs:
+  # Parse parameters from logs
   recipient = log['args']['recipient']
   amount = Decimal(log['args']['amount'])
+  block = log['blockNumber']
+
+  # Check if recipient's payout has already been set in this block
+  if recipient in user_block_dict and user_block_dict[recipient] == block:
+    raise Exception(f'Recipient {recipient} payout was set twice in block {block}, so unclear which to use')
+
+  # Recipient not seen in this block, so save data
   payment_dict[recipient] = amount
+  user_block_dict[recipient] = block
 
 # Sum up each entry to get the total required amount
 total_dai_required_wei = sum(payment_dict[recipient] for recipient in payment_dict.keys())
