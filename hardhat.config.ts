@@ -35,8 +35,10 @@ const infuraApiKey = process.env.INFURA_API_KEY as string;
 if (!process.env.ETHERSCAN_API_KEY) throw new Error('Please set your ETHERSCAN_API_KEY in a .env file');
 const etherscanApiKey = process.env.ETHERSCAN_API_KEY as string;
 
+if (!process.env.DEPLOYER_ADDRESS) throw new Error('Please set your DEPLOYER_ADDRESS in a .env file');
+
 // Define network configurations
-function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
+function createNetworkConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + infuraApiKey;
   return {
     accounts: {
@@ -56,11 +58,11 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: chainIds.hardhat,
     },
-    goerli: createTestnetConfig('goerli'),
-    kovan: createTestnetConfig('kovan'),
-    rinkeby: createTestnetConfig('rinkeby'),
-    ropsten: createTestnetConfig('ropsten'),
-    mainnet: createTestnetConfig('mainnet'),
+    goerli: createNetworkConfig('goerli'),
+    kovan: createNetworkConfig('kovan'),
+    rinkeby: createNetworkConfig('rinkeby'),
+    ropsten: createNetworkConfig('ropsten'),
+    mainnet: createNetworkConfig('mainnet'),
   },
   paths: {
     artifacts: './artifacts',

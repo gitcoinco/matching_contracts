@@ -62,10 +62,9 @@ async function main(): Promise<void> {
     const signers: Signer[] = await ethers.getSigners();
     deployer = signers[2];
     const deployerAddress = await deployer.getAddress();
-    if (deployerAddress !== '0x2D81e08C25CCA5fEa2eACb356E8E4F339EDaA5AD') {
+    if (deployerAddress !== process.env.DEPLOYER_ADDRESS) {
       throw new Error('Wrong deployer address!');
     }
-    console.log('deployerAddress: ', deployerAddress);
   }
 
   // Deploy MatchPayouts contract
