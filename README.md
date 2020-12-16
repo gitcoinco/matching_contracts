@@ -36,6 +36,7 @@ This contract is deployed on mainnet and Rinkeby at [0xAf32BDf2e2720f6C6a2Fce8B5
 ## Development
 
 Create a copy of `.env.example` and fill in the environment variables, the proceed to the following sections.
+If you don't plan on deploying the contracts, you should be able to leave these with the defaults.
 
 ### Contract Setup
 
