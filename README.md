@@ -4,6 +4,7 @@ Non-custodial match payouts for Gitcoin Grants.
 
 - [Gitcoin Matching Contracts](#gitcoin-matching-contracts)
   - [About](#about)
+  - [Contract Design and Security](#contract-design-and-security)
   - [Development](#development)
     - [Contract Setup](#contract-setup)
     - [Python Setup](#python-setup)
@@ -24,14 +25,32 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
 4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
    sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
 5. Funders review the payout mapping, and if they approve they transfer their funds to this
-   contract. This can be done with an ordinary transfer to this contract address. **WARNING: Do not send anything except for DAI to this contract or it will be lost**
+   contract. This can be done with an ordinary transfer to this contract address.
 6. Once all funds have been transferred, the contract owner calls `enablePayouts` which lets
    grant owners withdraw their match payments
-7. Grant owners can now call `withdraw()` to have their match payout sent to their address.
+7. Grant owners can now call `claimMatchPayout()` to have their match payout sent to their address.
    Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
    grants address cannot call contract methods.
 
 This contract is deployed on mainnet and Rinkeby at [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://etherscan.io/address/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
+
+## Contract Design and Security
+
+When designing and developing this contract, security was the number one goal. This led to keeping
+things as simple as possible in many places, and as a result some aspects of the design may seem
+inefficient or suboptimal. This section will explain those design decisions. To start, let's
+review the contract flow over its lifecycle as shown below:
+
+![image](https://user-images.githubusercontent.com/17163988/102834965-42d9bf80-43aa-11eb-9072-1d318de8ef66.png)
+
+
+Now lets review a few of the specific design decisions in this context.
+
+The payout mapping: Match amounts are saved in a mapping called `payouts`, and because there are about 1000 grants that receive match payouts, it takes multiple transactions and a lot of gas to set this mapping. Using a Merkle distributor may feel like the cleaner way to do it, but we intentionally decided against that here. One reason is because it's more complex, and since this contract was not formally audited we wanted to keep it simple. Another reason is because if we set the payout mapping wrong, we can easily override it with additional calls to `setPayouts` without having to generate a new merkle root.
+
+Funding: All funds to be paid out are expected to come from the [Gitcoin Grants multisig](https://etherscan.io/address/0xde21f729137c5af1b01d73af1dc21effa2b8a0d6). We take advantage of the fact that we trust this funder to keep things simple. The contract is funded with an ordinary transfer of DAI to the `MatchPayouts` contract. If the funder makes a mistake during this transfer, they have the ability to withdraw funds using the `withdrawFunding` method, which lets only the funder withdraw any tokens from the contract. Notice how there are no restrictions on when or what token the funder can withdraw—they can withdraw any amount of any token at any time! In an adversarial environment, this would be a problem. But because we trust the funder, we enable this functionality as a safeguard so funds can be withdrawn at any time in case something goes wrong.
+
+Claiming Funds: Some grants use contract wallets and it may not be easy for them to call a method allowing them to claim funds. As a result, the `claimMatchPayout` method allows anyone to withdraw on behalf of a grant, and transfers the funds to that grant's receiving address. Additionally, because there is no `msg.sender` usage, and because all match payouts are DAI, there is no reentrancy risk to worry about here.
 
 ## Development
 
