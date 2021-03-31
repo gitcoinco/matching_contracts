@@ -60,7 +60,7 @@ async function main(): Promise<void> {
     // We want to deploy with the third account derived from the mnemonic, and we hardcode that
     // address here to enforce that
     const signers: Signer[] = await ethers.getSigners();
-    deployer = signers[2];
+    deployer = signers[0];
     const deployerAddress = await deployer.getAddress();
     if (deployerAddress !== process.env.DEPLOYER_ADDRESS) {
       throw new Error('Wrong deployer address!');
