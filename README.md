@@ -34,6 +34,8 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
 
 This contract is deployed on mainnet and Rinkeby at [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://etherscan.io/address/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
 
+For round 9, the contract has been deployed on mainnet at 0x3342e3737732d879743f2682a3953a730ae4f47c .
+
 ## Contract Design and Security
 
 When designing and developing this contract, security was the number one goal. This led to keeping
@@ -42,7 +44,6 @@ inefficient or suboptimal. This section will explain those design decisions. To 
 review the contract flow over its lifecycle as shown below:
 
 ![image](https://user-images.githubusercontent.com/17163988/102834965-42d9bf80-43aa-11eb-9072-1d318de8ef66.png)
-
 
 Now lets review a few of the specific design decisions in this context.
 

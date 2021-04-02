@@ -77,7 +77,11 @@ contract MatchPayouts {
    * @param _funder Address of funder
    * @param _dai DAI address
    */
-  constructor(address _owner, address _funder, IERC20 _dai) {
+  constructor(
+    address _owner,
+    address _funder,
+    IERC20 _dai
+  ) {
     owner = _owner;
     funder = _funder;
     dai = _dai;
