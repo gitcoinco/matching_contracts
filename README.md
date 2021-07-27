@@ -42,8 +42,8 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
   - mainnet : [0x3342e3737732d879743f2682a3953a730ae4f47c](https://etherscan.io/address/0x3342e3737732d879743f2682a3953a730ae4f47c)
 
 - round 10
-  - rinkeby : [0xD018F426baba7d5c2475fEC89574D93462189680](https://rinkeby.etherscan.io/address/0xD018F426baba7d5c2475fEC89574D93462189680)
-  - mainnet : [0x9ADD848D5F82a898279dB776420a4E409C4Adfe0](https://etherscan.io/address/0x9ADD848D5F82a898279dB776420a4E409C4Adfe0)
+  - rinkeby : [0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38](https://rinkeby.etherscan.io/address/0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38)
+  - mainnet : [0x3ebAFfe01513164e638480404c651E885cCA0AA4](https://etherscan.io/address/0x3ebAFfe01513164e638480404c651E885cCA0AA4)
 
 ## Contract Design and Security
 
