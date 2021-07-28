@@ -32,13 +32,15 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
    Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
    grants address cannot call contract methods.
 
-### Contract Deployments 
+### Contract Deployments
 
 - round 8
+
   - rinkeby : [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://rinkeby.etherscan.io/tx/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
   - mainnet : [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://etherscan.io/address/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
 
-- round 9 
+- round 9
+
   - mainnet : [0x3342e3737732d879743f2682a3953a730ae4f47c](https://etherscan.io/address/0x3342e3737732d879743f2682a3953a730ae4f47c)
 
 - round 10

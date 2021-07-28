@@ -19,13 +19,13 @@ const constructorArgs: Record<string, ConstructorArgs> = {
     dai: '',
   },
   mainnet: {
-    owner: '0xe8c904DC650E6fCB3Fe39CC82b40bD897C83D8fa',
+    owner: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
     funder: '0xde21F729137C5Af1b01d73aF1dC21eFfa2B8a0d6', // Gitcoin Grants multisig
     dai: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
   },
   rinkeby: {
-    owner: '0xe8c904DC650E6fCB3Fe39CC82b40bD897C83D8fa',
-    funder: '0xe8c904DC650E6fCB3Fe39CC82b40bD897C83D8fa',
+    owner: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
+    funder: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
     dai: '0x2e055eEe18284513B993dB7568A592679aB13188',
   },
 };
@@ -60,7 +60,10 @@ async function main(): Promise<void> {
     // We want to deploy with the third account derived from the mnemonic, and we hardcode that
     // address here to enforce that
     const signers: Signer[] = await ethers.getSigners();
+
+    // NOTE: UPDATE THIS WITH YOUR ADDRESS POSITION IN signers
     deployer = signers[0];
+
     const deployerAddress = await deployer.getAddress();
     if (deployerAddress !== process.env.DEPLOYER_ADDRESS) {
       throw new Error('Wrong deployer address!');
