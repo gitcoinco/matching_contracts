@@ -24,6 +24,7 @@
     "types/**/*",
     "hardhat.config.ts",
     "inputs-mainnet.js",
-    "inputs-rinkeby.js"
+    "inputs-rinkeby.js",
+    "utils/**/*.ts"
   ]
 }
