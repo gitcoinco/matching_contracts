@@ -19,13 +19,13 @@ const constructorArgs: Record<string, ConstructorArgs> = {
     dai: '',
   },
   mainnet: {
-    owner: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
+    owner: '0x5cdb35fADB8262A3f88863254c870c2e6A848CcA', // TODO: UDPATE
     funder: '0xde21F729137C5Af1b01d73aF1dC21eFfa2B8a0d6', // Gitcoin Grants multisig
     dai: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
   },
   rinkeby: {
-    owner: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
-    funder: '0x1bCD46B724fD4C08995CEC46ffd51bD45feDE200', // TODO: UDPATE
+    owner: '0x5cdb35fADB8262A3f88863254c870c2e6A848CcA', // TODO: UDPATE
+    funder: '0x5cdb35fADB8262A3f88863254c870c2e6A848CcA', // TODO: UDPATE
     dai: '0x2e055eEe18284513B993dB7568A592679aB13188',
   },
 };
