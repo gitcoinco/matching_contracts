@@ -2,11 +2,9 @@
   "name": "gitcoin-matching-contract",
   "description": "Gitcoin grants matching contract",
   "version": "1.0.0",
-  "author": "Matt Solomon <matt@mattsolomon.dev>",
-  "dependencies": {
-    "@openzeppelin/contracts": "^3.3.0"
-  },
+  "author": "Gitcoin",
   "devDependencies": {
+    "@openzeppelin/contracts": "^3.4.1-solc-0.7-2",
     "@ethersproject/abstract-signer": "^5.0.6",
     "@ethersproject/bignumber": "^5.0.8",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
