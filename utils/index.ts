@@ -1,6 +1,6 @@
 import { BigNumberish, BigNumber } from 'ethers';
 import { defaultAbiCoder, hexStripZeros, hexZeroPad, keccak256 } from 'ethers/lib/utils';
-import { network } from 'hardhat';
+import { ethers, network } from 'hardhat';
 
 // --- Constants ---
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
@@ -73,4 +73,14 @@ function getBalanceOfSlotSolidity(mappingSlot: string, address: string) {
 // Converts a number to a 32 byte hex string
 function to32ByteHex(x: BigNumberish) {
   return hexZeroPad(BigNumber.from(x).toHexString(), 32);
+}
+
+// --- Token helpers ---
+// Gets token balance
+export async function balanceOf(tokenSymbol: SupportedToken, address: string): Promise<BigNumber> {
+  if (tokenSymbol === 'eth') return ethers.provider.getBalance(address);
+  const tokenAddress = tokens[tokenSymbol].address;
+  const abi = ['function balanceOf(address) external view returns (uint256)'];
+  const contract = new ethers.Contract(tokenAddress, abi, ethers.provider);
+  return contract.balanceOf(address);
 }

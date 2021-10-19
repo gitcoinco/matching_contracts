@@ -6,7 +6,7 @@ import { isAddress } from 'ethers/lib/utils';
 import { artifacts, ethers } from 'hardhat';
 import { Artifact } from 'hardhat/types';
 import { MerklePayout } from '../typechain';
-import { setBalance, tokens } from '../utils/index';
+import { balanceOf, setBalance, tokens } from '../utils/index';
 import { BalanceTree } from '../utils/balance-tree';
 
 const RANDOM_BYTES32 = utils.randomBytes(32);
@@ -82,6 +82,22 @@ describe('MerklePayout', function () {
       claim0Arg = { index: 0, payee: await randomAddress(), amount: 10, merkleProof: [] };
       await expect(payout.claim(claim0Arg)).to.be.revertedWith('MerkleGrantRoundPayout: Invalid proof.');
       await expect(payout.claim(claim1Arg)).to.be.revertedWith('MerkleGrantRoundPayout: Invalid proof.');
+    });
+
+    it('successfull claim', async () => {
+      await expect(payout.claim(claim0Arg)).to.emit(payout, 'Claimed').withArgs(0, user0.address, 100);
+      await expect(payout.claim(claim1Arg)).to.emit(payout, 'Claimed').withArgs(1, user1.address, 101);
+    });
+
+    it('claim transfer was successful', async () => {
+      expect(await balanceOf('dai', user0.address)).to.eq(0);
+      await payout.claim(claim0Arg);
+      expect(await balanceOf('dai', user0.address)).to.eq(100);
+    });
+
+    it('contract must have enough to transfer', async () => {
+      setBalance('dai', payout.address, 99);
+      await expect(payout.claim(claim0Arg)).to.be.revertedWith('Dai/insufficient-balance');
     });
   });
 });
