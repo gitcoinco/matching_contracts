@@ -62,13 +62,13 @@ contract MatchPayouts {
   event Funded();
 
   /// @dev Emitted when the funder reclaims the funds in this contract
-  event FundingWithdrawn(IERC20 token, uint256 amount);
+  event FundingWithdrawn(IERC20 indexed token, uint256 amount);
 
   /// @dev Emitted when a payout `amount` is added to the `recipient`'s payout total
   event PayoutAdded(address recipient, uint256 amount);
 
   /// @dev Emitted when a `recipient` withdraws their payout
-  event PayoutClaimed(address recipient, uint256 amount);
+  event PayoutClaimed(address indexed recipient, uint256 amount);
 
   // ================================== CONSTRUCTOR AND MODIFIERS ==================================
 
