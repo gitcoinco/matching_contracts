@@ -39,7 +39,7 @@ describe('MatchPayouts', function () {
 
   beforeEach(async function () {
     // Deploy mock DAI contract
-    this.dai = (await deployContract(
+    this.token = (await deployContract(
       this.signers.deployer,
       this.MockERC20Artifact,
       ['Dai', 'DAI'] // constructor arguments
@@ -49,7 +49,7 @@ describe('MatchPayouts', function () {
     this.matchPayouts = (await deployContract(
       this.signers.deployer,
       this.MatchPayoutsArtifact,
-      [this.accounts.owner, this.accounts.funder, this.dai.address] // constructor arguments
+      [this.accounts.owner, this.accounts.funder, this.token.address] // constructor arguments
     )) as MatchPayouts;
   });
 

@@ -22,7 +22,7 @@ export interface Signers {
 export interface ConstructorArgs {
   owner: string; // Contract owner
   funder: string; // Gitcoin Grants multisig
-  dai: string; // Dai address
+  token: string; // Dai address
 }
 
 // Used for setting payout mapping

@@ -18,7 +18,7 @@ PROVIDER = 'ws://127.0.0.1:8545/'
 
 # Contract addresses
 match_payouts_address = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512' # deterministic on localhost
-dai_address = '0x5FbDB2315678afecb367f032d93F642f64180aa3' # deterministic on localhost
+token_address = '0x5FbDB2315678afecb367f032d93F642f64180aa3' # deterministic on localhost
 
 # Filters for finding events
 from_block = 0 # block contract was deployed at
@@ -32,15 +32,15 @@ erc20_abi = '[{"constant":true,"inputs":[],"name":"mintingFinished","outputs":[{
 # ========================================= MAIN EXECUTION =========================================
 
 # Get expected total match amount
-expected_total_dai_amount = Decimal(0)
+expected_total_tokens_amount = Decimal(0)
 for (index,payout) in enumerate(expected_payouts):
-  expected_total_dai_amount += Decimal(payout['amount'])
-expected_total_dai_amount = expected_total_dai_amount / SCALE
+  expected_total_tokens_amount += Decimal(payout['amount'])
+expected_total_tokens_amount = expected_total_tokens_amount / SCALE
 
 # Get contract instances
 w3 = Web3(Web3.WebsocketProvider(PROVIDER))
 match_payouts = w3.eth.contract(address=match_payouts_address, abi=match_payouts_abi)
-dai = w3.eth.contract(address=dai_address, abi=erc20_abi)
+token = w3.eth.contract(address=token_address, abi=erc20_abi)
 
 # Get PayoutAdded events
 payout_added_filter = match_payouts.events.PayoutAdded.createFilter(fromBlock=from_block)
@@ -50,7 +50,7 @@ payout_added_logs = payout_added_filter.get_all_entries() # print these if you n
 # we use the value from the latest block
 sorted_payout_added_logs = sorted(payout_added_logs, key=lambda log:log['blockNumber'], reverse=False)
 
-# Get total required DAI balance based on PayoutAdded events. Events will be sorted chronologically,
+# Get total required token balance based on PayoutAdded events. Events will be sorted chronologically,
 # so if a recipient is duplicated we only keep the latest entry. We do this by storing our own
 # mapping from recipients to match amount and overwriting it as needed just like the contract would.
 # We keep another dict that maps the recipient's addresses to the block it was found in. If we find
@@ -73,42 +73,42 @@ for log in sorted_payout_added_logs:
   user_block_dict[recipient] = block
 
 # Sum up each entry to get the total required amount
-total_dai_required_wei = sum(payment_dict[recipient] for recipient in payment_dict.keys())
+total_tokens_required_wei = sum(payment_dict[recipient] for recipient in payment_dict.keys())
 
 # Convert to human units
-total_dai_required = total_dai_required_wei / SCALE 
+total_tokens_required = total_tokens_required_wei / SCALE 
 
-# Verify that total DAI required (from event logs) equals the expected amount
-if expected_total_dai_amount != total_dai_required:
+# Verify that total tokens required (from event logs) equals the expected amount
+if expected_total_tokens_amount != total_tokens_required:
   print('\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *')
-  print('Total DAI payout amount in the contract does not equal the expected value!')
-  print('  Total expected amount:  ', expected_total_dai_amount)
-  print('  Total amount from logs: ', total_dai_required)
+  print('Total token payout amount in the contract does not equal the expected value!')
+  print('  Total expected amount:  ', expected_total_tokens_amount)
+  print('  Total amount from logs: ', total_tokens_required)
   print('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n')
   raise Exception('Total payout amount in the contract does not equal the expected value!')
 print('Total payout amount in the contracts is the expected value')
 
-# Get contract DAI balance
-dai_balance = Decimal(dai.functions.balanceOf(match_payouts_address).call()) / SCALE
+# Get contract tokens balance
+token_balance = Decimal(token.functions.balanceOf(match_payouts_address).call()) / SCALE
 
-# Verify that contract has sufficient DAI balance to cover all payouts
+# Verify that contract has sufficient Tokens balance to cover all payouts
 print('\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *')
-if dai_balance == total_dai_required:
-  print(f'Contract balance of {dai_balance} DAI is exactly equal to the required amount')
+if token_balance == total_tokens_required:
+  print(f'Contract balance of {token_balance} tokens is exactly equal to the required amount')
 
-elif dai_balance < total_dai_required:
-  shortage = total_dai_required - dai_balance
-  print('Contract DAI balance is insufficient')
-  print('  Required balance: ', total_dai_required)
-  print('  Current balance:  ', dai_balance)
-  print('  Extra DAI needed: ', shortage)
-  print(f'\n Contract needs another {shortage} DAI')
+elif token_balance < total_tokens_required:
+  shortage = total_tokens_required - token_balance
+  print('Contract Tokens balance is insufficient')
+  print('  Required balance: ', total_tokens_required)
+  print('  Current balance:  ', token_balance)
+  print('  Extra Tokens needed: ', shortage)
+  print(f'\n Contract needs another {shortage} tokens')
 
-elif dai_balance > total_dai_required:
-  excess = dai_balance - total_dai_required
-  print('Contract has excess DAI balance')
-  print('  Required balance:  ', total_dai_required)
-  print('  Current balance:   ', dai_balance)
-  print('  Excess DAI amount: ', excess)
-  print(f'\n Contract has an excess of {excess} DAI')
+elif token_balance > total_tokens_required:
+  excess = token_balance - total_tokens_required
+  print('Contract has excess Tokens balance')
+  print('  Required balance:  ', total_tokens_required)
+  print('  Current balance:   ', token_balance)
+  print('  Excess Tokens amount: ', excess)
+  print(f'\n Contract has an excess of {excess} tokens')
 print('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n')

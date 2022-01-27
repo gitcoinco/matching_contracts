@@ -7,7 +7,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
     it('deploys and initializes properly', async function () {
       expect(await this.matchPayouts.owner()).to.equal(this.accounts.owner);
       expect(await this.matchPayouts.funder()).to.equal(this.accounts.funder);
-      expect(await this.matchPayouts.dai()).to.equal(this.dai.address);
+      expect(await this.matchPayouts.token()).to.equal(this.token.address);
       expect(await this.matchPayouts.state()).to.equal(0); // 0 = Waiting
     });
   });
@@ -26,7 +26,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
     });
 
     it("restricts who is allowed to withdraw funders' DAI from the contract", async function () {
-      const tx = this.matchPayouts.connect(this.signers.evilUser).withdrawFunding(this.dai.address);
+      const tx = this.matchPayouts.connect(this.signers.evilUser).withdrawFunding(this.token.address);
       await expect(tx).to.be.revertedWith('MatchPayouts: caller is not the funder');
     });
 
@@ -99,15 +99,15 @@ export function shouldBehaveLikeMatchPayouts(): void {
     it('lets the funder withdraw their DAI', async function () {
       // Mint Dai to the contract to simulate funders transferring funds to it
       const funderAmount = parseEther('300000'); // 300k DAI
-      await this.dai.mint(this.matchPayouts.address, funderAmount);
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(funderAmount);
-      expect(await this.dai.balanceOf(this.accounts.funder)).to.equal('0');
+      await this.token.mint(this.matchPayouts.address, funderAmount);
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal(funderAmount);
+      expect(await this.token.balanceOf(this.accounts.funder)).to.equal('0');
 
       // Withdraw funds
-      const tx = this.matchPayouts.connect(this.signers.funder).withdrawFunding(this.dai.address);
-      await expect(tx).to.emit(this.matchPayouts, 'FundingWithdrawn').withArgs(this.dai.address, funderAmount);
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal('0');
-      expect(await this.dai.balanceOf(this.accounts.funder)).to.equal(funderAmount);
+      const tx = this.matchPayouts.connect(this.signers.funder).withdrawFunding(this.token.address);
+      await expect(tx).to.emit(this.matchPayouts, 'FundingWithdrawn').withArgs(this.token.address, funderAmount);
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.funder)).to.equal(funderAmount);
     });
 
     it('lets the owner indicate that match payments can be withdrawn', async function () {
@@ -122,7 +122,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
     it('lets users claim match payouts', async function () {
       // Mint Dai to the contract to simulate funders transferring funds to it
       const funderAmount = parseEther('300000'); // 300k DAI
-      await this.dai.mint(this.matchPayouts.address, funderAmount);
+      await this.token.mint(this.matchPayouts.address, funderAmount);
 
       // Set payouts
       const matchAmounts = [parseEther('1'), parseEther('1.5')];
@@ -137,8 +137,8 @@ export function shouldBehaveLikeMatchPayouts(): void {
       await this.matchPayouts.connect(this.signers.owner).enablePayouts();
 
       // Withdraw
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal('0');
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[0])).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(payouts[0].recipient);
       await expect(tx1).to.emit(this.matchPayouts, 'PayoutClaimed').withArgs(payouts[0].recipient, payouts[0].amount);
@@ -151,7 +151,7 @@ export function shouldBehaveLikeMatchPayouts(): void {
       // ------------------------------------------ Setup ------------------------------------------
       // Mint Dai to funders
       const funderAmount = parseEther('300000'); // 300k DAI
-      await this.dai.mint(this.accounts.funder, funderAmount);
+      await this.token.mint(this.accounts.funder, funderAmount);
 
       // Set payouts
       const matchAmounts = [parseEther('15000'), parseEther('37000')]; // 15k and 37k DAI match payouts
@@ -166,18 +166,18 @@ export function shouldBehaveLikeMatchPayouts(): void {
 
       // ----------------------------------------- Funding -----------------------------------------
       // Funder directly transfers DAI to contract
-      await this.dai.connect(this.signers.funder).transfer(this.matchPayouts.address, funderAmount);
+      await this.token.connect(this.signers.funder).transfer(this.matchPayouts.address, funderAmount);
 
       // Check that total balances in contract is correct
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(funderAmount);
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal(funderAmount);
 
       // Owner marks contract as funded
       await this.matchPayouts.connect(this.signers.owner).enablePayouts();
 
       // --------------------------------------- Withdrawals ---------------------------------------
       // Grant owners should initially have no balance
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal('0');
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[0])).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // First grant owner withdraws on their own
       const tx1 = this.matchPayouts.connect(this.signers.grantOwners[0]).claimMatchPayout(payouts[0].recipient);
@@ -185,11 +185,11 @@ export function shouldBehaveLikeMatchPayouts(): void {
 
       // Make sure contract balance decreased
       const firstBalance = funderAmount.sub(matchAmounts[0]); // expected contract balance
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(firstBalance);
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal(firstBalance);
 
       // First grant owner should have their match funds
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
+      expect(await this.token.balanceOf(this.accounts.grantOwners[1])).to.equal('0');
 
       // Evil user tries to withdraw funds for second grant owner
       const tx2 = this.matchPayouts.connect(this.signers.evilUser).claimMatchPayout(payouts[1].recipient);
@@ -197,22 +197,22 @@ export function shouldBehaveLikeMatchPayouts(): void {
 
       // Make sure contract balance decreased again
       const secondBalance = firstBalance.sub(matchAmounts[1]); // new expected contract balance
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
 
       // Withdrawal amount still should have went to the second grant owner
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
-      expect(await this.dai.balanceOf(this.accounts.evilUser)).to.equal('0');
+      expect(await this.token.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
+      expect(await this.token.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
+      expect(await this.token.balanceOf(this.accounts.evilUser)).to.equal('0');
 
       // Users can try to withdraw again, but won't receive any extra DAI
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[0])).to.equal('0');
       expect(await this.matchPayouts.payouts(this.accounts.grantOwners[1])).to.equal('0');
 
       await this.matchPayouts.connect(this.signers.grantOwners[1]).claimMatchPayout(this.accounts.grantOwners[1]);
-      expect(await this.dai.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
-      expect(await this.dai.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
-      expect(await this.dai.balanceOf(this.accounts.evilUser)).to.equal('0');
+      expect(await this.token.balanceOf(this.matchPayouts.address)).to.equal(secondBalance);
+      expect(await this.token.balanceOf(this.accounts.grantOwners[0])).to.equal(matchAmounts[0]);
+      expect(await this.token.balanceOf(this.accounts.grantOwners[1])).to.equal(matchAmounts[1]);
+      expect(await this.token.balanceOf(this.accounts.evilUser)).to.equal('0');
     });
   });
 }

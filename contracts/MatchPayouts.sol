@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  *  2. Once the round is complete, Gitcoin computes the final match amounts earned by each grant
  *  3. Over the course of multiple transactions, the contract owner will set the payout mapping
  *     stored in the `payouts` variable. This maps each grant receiving address to the match amount
- *     owed, in DAI
+ *     owed, in an ERC20 token
  *  4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
  *     sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
  *  5. Funders review the payout mapping, and if they approve they transfer their funds to this
@@ -37,7 +37,7 @@ contract MatchPayouts {
   address public immutable funder;
 
   /// @dev Token used for match payouts
-  IERC20 public immutable dai;
+  IERC20 public immutable token;
 
   /// @dev Convenience type used for setting inputs
   struct PayoutFields {
@@ -75,16 +75,16 @@ contract MatchPayouts {
   /**
    * @param _owner Address of contract owner
    * @param _funder Address of funder
-   * @param _dai DAI address
+   * @param _token ERC20 token address
    */
   constructor(
     address _owner,
     address _funder,
-    IERC20 _dai
+    IERC20 _token
   ) {
     owner = _owner;
     funder = _funder;
-    dai = _dai;
+    token = _token;
   }
 
   /// @dev Requires caller to be the owner
@@ -157,8 +157,13 @@ contract MatchPayouts {
    */
   function claimMatchPayout(address _recipient) external requireState(State.Funded) {
     uint256 _amount = payouts[_recipient]; // save off amount owed
-    payouts[_recipient] = 0; // clear storage to mitigate reentrancy (not likely anyway since we trust Dai)
-    dai.safeTransfer(_recipient, _amount);
+    // clear storage to mitigate reentrancy
+    payouts[_recipient] = 0;
+
+    // transfer token to owner claiming funds
+    token.safeTransfer(_recipient, _amount);
+
+    // emit event
     emit PayoutClaimed(_recipient, _amount);
   }
 }
