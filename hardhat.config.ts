@@ -37,20 +37,27 @@ const etherscanApiKey = process.env.ETHERSCAN_API_KEY as string;
 
 if (!process.env.DEPLOYER_ADDRESS) throw new Error('Please set your DEPLOYER_ADDRESS in a .env file');
 
+const accounts = {
+  count: 10,
+  initialIndex: 0,
+  mnemonic,
+  path: "m/44'/60'/0'/0",
+};
+
 // Define network configurations
 function createNetworkConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = 'https://' + network + '.infura.io/v3/' + infuraApiKey;
   return {
-    accounts: {
-      count: 10,
-      initialIndex: 0,
-      mnemonic,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts,
     chainId: chainIds[network],
     url,
   };
 }
+
+const configurePolygonNetwork = (testnet: boolean) => ({
+  accounts,
+  url: testnet ? 'https://rpc-mumbai.maticvigil.com' : 'https://polygon-rpc.com/',
+});
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
@@ -63,6 +70,8 @@ const config: HardhatUserConfig = {
     rinkeby: createNetworkConfig('rinkeby'),
     ropsten: createNetworkConfig('ropsten'),
     mainnet: createNetworkConfig('mainnet'),
+    polygon: configurePolygonNetwork(false),
+    polygonMumbai: configurePolygonNetwork(true),
   },
   paths: {
     artifacts: './artifacts',

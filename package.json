@@ -59,6 +59,7 @@
     "deploy:mainnet": "yarn hardhat run scripts/deploy.ts --network mainnet",
     "deploy:rinkeby": "yarn hardhat run scripts/deploy.ts --network rinkeby",
     "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
+    "deploy:polygon:local": "concurrently \"yarn hardhat node --fork https://polygon-rpc.com\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
     "sim:set-payouts": "yarn hardhat --network localhost set-payouts",
     "sim:verify-payouts": "source ./venv/bin/activate && python scripts/verify-payouts.py",
     "sim:fund": "yarn hardhat --network localhost fund"
