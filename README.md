@@ -44,16 +44,15 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
   - mainnet : [0x3342e3737732d879743f2682a3953a730ae4f47c](https://etherscan.io/address/0x3342e3737732d879743f2682a3953a730ae4f47c)
 
 - round 10
+
   - rinkeby : [0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38](https://rinkeby.etherscan.io/address/0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38)
   - mainnet : [0x3ebAFfe01513164e638480404c651E885cCA0AA4](https://etherscan.io/address/0x3ebAFfe01513164e638480404c651E885cCA0AA4)
 
 - round 11
   - rinkeby : [0x77278BB93694827f3c60Cdf0275C9C58AED0BEbE](https://rinkeby.etherscan.io/address/0x77278BB93694827f3c60Cdf0275C9C58AED0BEbE)
   - mainnet : [0x0EbD2E2130b73107d0C45fF2E16c93E7e2e10e3a](https://etherscan.io/address/0x0EbD2E2130b73107d0C45fF2E16c93E7e2e10e3a)
-  
 - round 12
   - mainnet : [0xAB8d71d59827dcc90fEDc5DDb97f87eFfB1B1A5B](https://etherscan.io/address/0xAB8d71d59827dcc90fEDc5DDb97f87eFfB1B1A5B)
-  
 
 ## Contract Design and Security
 
@@ -155,6 +154,13 @@ As expected, the contract does not have enough DAI to cover all match payouts.
 Run `yarn sim:fund` to simulate the funder adding DAI to the contract. Now run `yarn sim:verify-payouts`
 again and it will show the contract has sufficient funds! At this point, the owner can call
 `enablePayouts` to let grant owners withdraw their match amounts.
+
+
+## Deploy Steps
+- update inputs-rinkeby.js and input-mainnet.js with needed params
+- update deploy.ts with the right config for mainnet and rinkeby 
+- deploy the contract
+- verify the contract using hardhat and verify on etherscan
 
 ## Acknowledgements
 
