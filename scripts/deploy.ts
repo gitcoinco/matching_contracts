@@ -28,6 +28,18 @@ const constructorArgs: Record<string, ConstructorArgs> = {
     funder: '0x5cdb35fADB8262A3f88863254c870c2e6A848CcA', // TODO: UDPATE
     dai: '0x2e055eEe18284513B993dB7568A592679aB13188',
   },
+  polygon: {
+    // Changeeeeeeee owner funder
+    owner: '0x753CFB338925fFEca0ad7f0517362D0CD3085d83', // TODO: UDPATE
+    funder: '0x753CFB338925fFEca0ad7f0517362D0CD3085d83', // TODO: UDPATE
+    dai: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', // https://polygonscan.com/token/0x8f3cf7ad23cd3cadbd9735aff958023239c6a063
+  },
+  polygonMumbai: {
+    // Changeeeeeeee owner funder
+    owner: '0x753CFB338925fFEca0ad7f0517362D0CD3085d83', // TODO: UDPATE
+    funder: '0x753CFB338925fFEca0ad7f0517362D0CD3085d83', // TODO: UDPATE
+    dai: '0x75DB33382DF5FbbA9d4344bFD04b3D8c8f3a0eB9', // This is a random dummy DAI contract I found https://mumbai.polygonscan.com/address/0x75DB33382DF5FbbA9d4344bFD04b3D8c8f3a0eB9#readContract
+  },
 };
 
 async function main(): Promise<void> {
