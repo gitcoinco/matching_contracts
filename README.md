@@ -128,7 +128,7 @@ check the contract state. The final versions of this script live in the
 First let's deploy the contracts locally.
 
 ```sh
-$ yarn deploy:local
+yarn deploy:local
 ```
 
 Wait a few seconds for that to complete.
@@ -138,7 +138,7 @@ the below command, which will set the payout mapping and save the mapping to `ou
 so we can verify it later
 
 ```sh
-$ yarn sim:set-payouts
+yarn sim:set-payouts
 ```
 
 Let's compare the total value of the payouts mapping from the events to what we'd expect from
@@ -156,11 +156,17 @@ again and it will show the contract has sufficient funds! At this point, the own
 `enablePayouts` to let grant owners withdraw their match amounts.
 
 
+
 ## Deploy Steps
 - update inputs-rinkeby.js and input-mainnet.js with needed params
 - update deploy.ts with the right config for mainnet and rinkeby 
 - deploy the contract
 - verify the contract using hardhat and verify on etherscan
+
+
+### Verify Source Code after Deployment
+
+The `hardhat-etherscan` plugin is installed and can be used to verify contract source code after it has been deployed. Documentation can be found here: <https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html>
 
 ## Acknowledgements
 

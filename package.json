@@ -10,7 +10,7 @@
     "@ethersproject/abstract-signer": "^5.0.6",
     "@ethersproject/bignumber": "^5.0.8",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
-    "@nomiclabs/hardhat-etherscan": "^2.1.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@typechain/ethers-v5": "^2.0.0",
     "@types/chai": "^4.2.13",
@@ -59,6 +59,8 @@
     "deploy:mainnet": "yarn hardhat run scripts/deploy.ts --network mainnet",
     "deploy:rinkeby": "yarn hardhat run scripts/deploy.ts --network rinkeby",
     "deploy:local": "concurrently \"yarn hardhat node\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
+    "deploy:polygon:local": "concurrently \"yarn hardhat node --fork https://polygon-rpc.com\" \"yarn hardhat run scripts/deploy.ts --network localhost\"",
+    "deploy:mumbai": "yarn hardhat run scripts/deploy.ts --network polygonMumbai",
     "sim:set-payouts": "yarn hardhat --network localhost set-payouts",
     "sim:verify-payouts": "source ./venv/bin/activate && python scripts/verify-payouts.py",
     "sim:fund": "yarn hardhat --network localhost fund"
