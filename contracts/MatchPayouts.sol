@@ -17,12 +17,14 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  *     contract. This can be done with an ordinary transfer to this contract address.
  *  6. Once all funds have been transferred, the contract owner calls `enablePayouts` which lets
  *     grant owners withdraw their match payments
- *  6. Grant owners can now call `withdraw()` to have their match payout sent to their address.
+ *  7. The funder can call `withdrawFunding()` allows the remaining erc20 funds
+ *     (set during contract deploy) to be drained into the funder account.
+ *  8. Grant owners can now call `claimMatchPayout()` to have their match payout sent to their address.
  *     Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
  *     grants address cannot call contract methods.
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *        WARNING: DO NOT SEND ANYTHING EXCEPT FOR DAI TO THIS CONTRACT OR IT WILL BE LOST!        *
+ *  WARNING:  ONLY SEND THE ERC-20 TOKEN SET WHILE DEPLOYING TO THIS CONTRACT OR IT WILL BE LOST!  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 contract MatchPayouts {
