@@ -21,7 +21,7 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
 2. Once the round is complete, Gitcoin computes the final match amounts earned by each grant
 3. Over the course of multiple transactions, the contract owner will set the payout mapping
    stored in the `payouts` variable. This maps each grant receiving address to the match amount
-   owed, in DAI
+   owed, in the ERC20 token
 4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
    sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
 5. Funders review the payout mapping, and if they approve they transfer their funds to this
@@ -67,9 +67,9 @@ Now lets review a few of the specific design decisions in this context.
 
 The payout mapping: Match amounts are saved in a mapping called `payouts`, and because there are about 1000 grants that receive match payouts, it takes multiple transactions and a lot of gas to set this mapping. Using a Merkle distributor may feel like the cleaner way to do it, but we intentionally decided against that here. One reason is because it's more complex, and since this contract was not formally audited we wanted to keep it simple. Another reason is because if we set the payout mapping wrong, we can easily override it with additional calls to `setPayouts` without having to generate a new merkle root.
 
-Funding: All funds to be paid out are expected to come from the [Gitcoin Grants multisig](https://etherscan.io/address/0xde21f729137c5af1b01d73af1dc21effa2b8a0d6). We take advantage of the fact that we trust this funder to keep things simple. The contract is funded with an ordinary transfer of DAI to the `MatchPayouts` contract. If the funder makes a mistake during this transfer, they have the ability to withdraw funds using the `withdrawFunding` method, which lets only the funder withdraw any tokens from the contract. Notice how there are no restrictions on when or what token the funder can withdraw—they can withdraw any amount of any token at any time! In an adversarial environment, this would be a problem. But because we trust the funder, we enable this functionality as a safeguard so funds can be withdrawn at any time in case something goes wrong.
+Funding: All funds to be paid out are expected to come from the [Gitcoin Grants multisig](https://etherscan.io/address/0xde21f729137c5af1b01d73af1dc21effa2b8a0d6). We take advantage of the fact that we trust this funder to keep things simple. The contract is funded with an ordinary transfer of an ERC20 token to the `MatchPayouts` contract. If the funder makes a mistake during this transfer, they have the ability to withdraw funds using the `withdrawFunding` method, which lets only the funder withdraw any tokens from the contract. Notice how there are no restrictions on when or what token the funder can withdraw—they can withdraw any amount of any token at any time! In an adversarial environment, this would be a problem. But because we trust the funder, we enable this functionality as a safeguard so funds can be withdrawn at any time in case something goes wrong.
 
-Claiming Funds: Some grants use contract wallets and it may not be easy for them to call a method allowing them to claim funds. As a result, the `claimMatchPayout` method allows anyone to withdraw on behalf of a grant, and transfers the funds to that grant's receiving address. Additionally, because there is no `msg.sender` usage, and because all match payouts are DAI, there is no reentrancy risk to worry about here.
+Claiming Funds: Some grants use contract wallets and it may not be easy for them to call a method allowing them to claim funds. As a result, the `claimMatchPayout` method allows anyone to withdraw on behalf of a grant, and transfers the funds to that grant's receiving address. Additionally, because there is no `msg.sender` usage, and because all match payouts are in a single ERC20 token, there is no reentrancy risk to worry about here.
 
 ## Development
 
@@ -142,18 +142,27 @@ yarn sim:set-payouts
 ```
 
 Let's compare the total value of the payouts mapping from the events to what we'd expect from
-`payouts.json`, and let's compare that to the DAI balance of the contract.
+`payouts.json`, and let's compare that to the ERC20 balance of the contract.
 
 ```sh
 # Run the python script
 yarn sim:verify-payouts
 ```
 
-As expected, the contract does not have enough DAI to cover all match payouts.
+As expected, the contract does not have enough ERC20 token to cover all match payouts.
 
-Run `yarn sim:fund` to simulate the funder adding DAI to the contract. Now run `yarn sim:verify-payouts`
+Run `yarn sim:fund` to simulate the funder adding ERC20 token to the contract. Now run `yarn sim:verify-payouts`
 again and it will show the contract has sufficient funds! At this point, the owner can call
 `enablePayouts` to let grant owners withdraw their match amounts.
+
+
+
+## Deploy Steps
+- update inputs-rinkeby.js and input-mainnet.js with needed params
+- update deploy.ts with the right config for mainnet and rinkeby 
+- deploy the contract
+- verify the contract using hardhat and verify on etherscan
+
 
 ### Verify Source Code after Deployment
 

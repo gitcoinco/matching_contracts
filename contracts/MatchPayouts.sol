@@ -10,19 +10,21 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  *  2. Once the round is complete, Gitcoin computes the final match amounts earned by each grant
  *  3. Over the course of multiple transactions, the contract owner will set the payout mapping
  *     stored in the `payouts` variable. This maps each grant receiving address to the match amount
- *     owed, in DAI
+ *     owed, in an ERC20 token
  *  4. Once this mapping has been set for each grant, the contract owner calls `finalize()`. This
  *     sets `finalized` to `true`, and at this point the payout mapping can no longer be updated.
  *  5. Funders review the payout mapping, and if they approve they transfer their funds to this
  *     contract. This can be done with an ordinary transfer to this contract address.
  *  6. Once all funds have been transferred, the contract owner calls `enablePayouts` which lets
  *     grant owners withdraw their match payments
- *  6. Grant owners can now call `withdraw()` to have their match payout sent to their address.
+ *  7. The funder can call `withdrawFunding()` allows the remaining erc20 funds
+ *     (set during contract deploy) to be drained into the funder account.
+ *  8. Grant owners can now call `claimMatchPayout()` to have their match payout sent to their address.
  *     Anyone can call this method on behalf of a grant owner, which is useful if your Gitcoin
  *     grants address cannot call contract methods.
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *        WARNING: DO NOT SEND ANYTHING EXCEPT FOR DAI TO THIS CONTRACT OR IT WILL BE LOST!        *
+ *  WARNING:  ONLY SEND THE ERC-20 TOKEN SET WHILE DEPLOYING TO THIS CONTRACT OR IT WILL BE LOST!  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 contract MatchPayouts {
@@ -37,7 +39,7 @@ contract MatchPayouts {
   address public immutable funder;
 
   /// @dev Token used for match payouts
-  IERC20 public immutable dai;
+  IERC20 public immutable token;
 
   /// @dev Convenience type used for setting inputs
   struct PayoutFields {
@@ -75,16 +77,16 @@ contract MatchPayouts {
   /**
    * @param _owner Address of contract owner
    * @param _funder Address of funder
-   * @param _dai DAI address
+   * @param _token ERC20 token address
    */
   constructor(
     address _owner,
     address _funder,
-    IERC20 _dai
+    IERC20 _token
   ) {
     owner = _owner;
     funder = _funder;
-    dai = _dai;
+    token = _token;
   }
 
   /// @dev Requires caller to be the owner
@@ -157,8 +159,13 @@ contract MatchPayouts {
    */
   function claimMatchPayout(address _recipient) external requireState(State.Funded) {
     uint256 _amount = payouts[_recipient]; // save off amount owed
-    payouts[_recipient] = 0; // clear storage to mitigate reentrancy (not likely anyway since we trust Dai)
-    dai.safeTransfer(_recipient, _amount);
+    // clear storage to mitigate reentrancy
+    payouts[_recipient] = 0;
+
+    // transfer token to owner claiming funds
+    token.safeTransfer(_recipient, _amount);
+
+    // emit event
     emit PayoutClaimed(_recipient, _amount);
   }
 }
