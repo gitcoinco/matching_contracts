@@ -35,23 +35,20 @@ This contract allows for non-custodial Gitcoin Grants match payouts. It works as
 ### Contract Deployments
 
 - round 8
-
   - rinkeby : [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://rinkeby.etherscan.io/tx/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
   - mainnet : [0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6](https://etherscan.io/address/0xf2354570bE2fB420832Fb7Ff6ff0AE0dF80CF2c6)
 
 - round 9
-
   - mainnet : [0x3342e3737732d879743f2682a3953a730ae4f47c](https://etherscan.io/address/0x3342e3737732d879743f2682a3953a730ae4f47c)
 
 - round 10
-
   - rinkeby : [0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38](https://rinkeby.etherscan.io/address/0x8B7E04872f4e3F12e6CEb7F25BF8C74813ad3e38)
   - mainnet : [0x3ebAFfe01513164e638480404c651E885cCA0AA4](https://etherscan.io/address/0x3ebAFfe01513164e638480404c651E885cCA0AA4)
 
 - round 11
   - rinkeby : [0x77278BB93694827f3c60Cdf0275C9C58AED0BEbE](https://rinkeby.etherscan.io/address/0x77278BB93694827f3c60Cdf0275C9C58AED0BEbE)
   - mainnet : [0x0EbD2E2130b73107d0C45fF2E16c93E7e2e10e3a](https://etherscan.io/address/0x0EbD2E2130b73107d0C45fF2E16c93E7e2e10e3a)
-  - 
+
 - round 12
   - mainnet : [0xAB8d71d59827dcc90fEDc5DDb97f87eFfB1B1A5B](https://etherscan.io/address/0xAB8d71d59827dcc90fEDc5DDb97f87eFfB1B1A5B)
 
